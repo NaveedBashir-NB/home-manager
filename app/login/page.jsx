@@ -14,7 +14,6 @@ export default function LoginPage() {
   function handleSubmit(e) {
     e.preventDefault();
 
-    // local login (later we will implement storing users in localStorage)
     const savedUser = localStorage.getItem("hm_user");
 
     if (!savedUser) {
@@ -33,79 +32,91 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[url('/bg-image.jpg')] bg-cover bg-center relative px-4">
+    <div
+      className="flex items-center justify-center relative w-screen overflow-x-hidden transition-colors duration-500"
+      style={{ minHeight: "calc(100vh - 80px)" }} // Deduct navbar height
+    >
+      {/* Background */}
+      <div
+        className="absolute inset-0 bg-cover bg-center transition-transform duration-1000"
+        style={{ backgroundImage: "url('/bg-image.jpg')" }}
+      ></div>
 
       {/* Overlay */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+      <div className="absolute inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm transition-colors duration-500"></div>
 
-      {/* Card Container */}
-      <div className="relative z-20 w-full max-w-md bg-white/10 dark:bg-black/20 border border-white/20 backdrop-blur-lg rounded-xl p-8 shadow-xl">
+      {/* Form Container */}
+      <div className="relative z-20 w-full max-w-xs sm:max-w-sm md:max-w-md bg-[var(--bg-nav)] dark:bg-[var(--bg-nav)] border border-[var(--dropdown-border)] backdrop-blur-lg rounded-xl p-6 sm:p-8 shadow-xl transition-colors duration-500">
 
-        <h1 className="text-4xl font-playfair text-center text-white font-bold">
+        {/* Heading */}
+        <h1 className="text-2xl sm:text-3xl font-[Poppins] text-center text-[var(--text-main)] mb-1 font-bold">
           Welcome Back
         </h1>
-
-        <p className="text-gray-200 text-center mt-2">
+        <p className="text-sm sm:text-base font-[Inter] text-center text-[var(--text-muted)] mb-4">
           Login to continue managing your home.
         </p>
 
         {/* Login Form */}
-        <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
 
           {/* Email */}
           <div>
-            <label className="text-gray-200">Email</label>
+            <label className="text-[var(--text-main)] font-semibold text-sm sm:text-base">
+              Email
+            </label>
             <input
               type="email"
               name="email"
               required
               onChange={handleChange}
               placeholder="example@mail.com"
-              className="w-full mt-1 px-4 py-2 bg-white/20 text-white rounded-lg placeholder-gray-300 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+              className="w-full mt-1 px-4 py-2 bg-white/20 dark:bg-black/30 text-[var(--text-main)] placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:outline-none transition-colors"
             />
           </div>
 
           {/* Password */}
           <div>
-            <label className="text-gray-200">Password</label>
+            <label className="text-[var(--text-main)] font-semibold text-sm sm:text-base">
+              Password
+            </label>
             <input
               type="password"
               name="password"
               required
               onChange={handleChange}
               placeholder="••••••••"
-              className="w-full mt-1 px-4 py-2 bg-white/20 text-white rounded-lg placeholder-gray-300 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+              className="w-full mt-1 px-4 py-2 bg-white/20 dark:bg-black/30 text-[var(--text-main)] placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:outline-none transition-colors"
             />
           </div>
 
           {/* Submit Button */}
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold shadow-lg transition"
+            className="btn-theme w-full py-2 text-sm sm:text-base"
           >
             Login
           </button>
         </form>
 
         {/* Divider */}
-        <div className="flex items-center gap-3 my-6">
+        <div className="flex items-center gap-3 my-4 sm:my-6">
           <div className="flex-1 h-px bg-white/30"></div>
-          <span className="text-gray-200 text-sm">OR</span>
+          <span className="text-[var(--text-muted)] text-xs sm:text-sm">OR</span>
           <div className="flex-1 h-px bg-white/30"></div>
         </div>
 
         {/* Google OAuth */}
         <button
           onClick={() => signIn("google")}
-          className="w-full bg-white text-gray-700 py-2 rounded-lg font-semibold shadow hover:bg-gray-100 transition"
+          className="btn-theme w-full py-2 text-sm sm:text-base bg-white text-gray-700 hover:bg-gray-100 shadow transition"
         >
           Continue with Google
         </button>
 
         {/* Link to Register */}
-        <p className="text-center text-gray-300 mt-6">
+        <p className="text-center text-var(--text-muted) mt-4 sm:mt-6 text-xs sm:text-sm">
           Don’t have an account?{" "}
-          <Link href="/register" className="text-blue-400 hover:underline">
+          <Link href="/register" className="text-yellow-400 hover:underline">
             Register
           </Link>
         </p>
