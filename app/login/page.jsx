@@ -1,12 +1,22 @@
 "use client";
 
-import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { useState, useEffect } from "react";
+import { signIn, useSession } from "next-auth/react";
 import Link from "next/link";
 import InputField from "../components/InputField";
+import { saveGoogleUser } from "../utils/saveGoogleUser";
 
 export default function LoginPage() {
   const [form, setForm] = useState({ email: "", password: "" });
+  const { data: session } = useSession();
+
+  // If Google login is successful → Save user to localStorage
+  useEffect(() => {
+    if (session?.user) {
+      saveGoogleUser(session);
+      window.location.href = "/dashboard";
+    }
+  }, [session]);
 
   function handleChange(e) {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -24,7 +34,11 @@ export default function LoginPage() {
 
     const parsed = JSON.parse(savedUser);
 
-    if (parsed.email === form.email && parsed.password === form.password) {
+    if (
+      parsed.email === form.email &&
+      parsed.password === form.password
+    ) {
+      localStorage.setItem("hm_session", "active");
       alert("Login successful!");
       window.location.href = "/dashboard";
     } else {
@@ -35,7 +49,7 @@ export default function LoginPage() {
   return (
     <div
       className="flex items-center justify-center relative w-screen overflow-x-hidden transition-colors duration-500"
-      style={{ minHeight: "calc(100vh - 80px)" }} // Deduct navbar height
+      style={{ minHeight: "calc(100vh - 80px)" }}
     >
       {/* Background */}
       <div
@@ -48,7 +62,6 @@ export default function LoginPage() {
 
       {/* Form Container */}
       <div className="relative z-20 w-full max-w-xs sm:max-w-sm md:max-w-md bg-[var(--bg-nav)] dark:bg-[var(--bg-nav)] border-yellow-200 border-2 backdrop-blur-lg rounded-xl p-6 sm:p-8 shadow-xl transition-colors duration-500">
-        {/* Heading */}
         <h1 className="text-2xl sm:text-3xl font-[Poppins] text-center text-[var(--text-main)] mb-1 font-bold">
           Welcome Back
         </h1>
@@ -56,9 +69,7 @@ export default function LoginPage() {
           Login to continue managing your home.
         </p>
 
-        {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
-          {/* Email */}
           <InputField
             label="Email"
             type="email"
@@ -68,7 +79,6 @@ export default function LoginPage() {
             required
           />
 
-          {/* Password */}
           <InputField
             label="Password"
             type="password"
@@ -78,11 +88,7 @@ export default function LoginPage() {
             required
           />
 
-          {/* Submit Button */}
-          <button
-            type="submit"
-            className="btn-theme w-full py-2 text-sm sm:text-base"
-          >
+          <button type="submit" className="btn-theme w-full py-2 text-sm sm:text-base">
             Login
           </button>
         </form>
@@ -96,7 +102,7 @@ export default function LoginPage() {
           <div className="flex-1 h-px bg-white/30"></div>
         </div>
 
-        {/* Google OAuth */}
+        {/* Google Login */}
         <button
           onClick={() => signIn("google")}
           className="btn-theme w-full py-2 text-sm sm:text-base bg-white text-gray-700 hover:bg-gray-100 shadow transition"
@@ -104,8 +110,7 @@ export default function LoginPage() {
           Continue with Google
         </button>
 
-        {/* Link to Register */}
-        <p className="text-center text-var(--text-muted) mt-4 sm:mt-6 text-xs sm:text-sm">
+        <p className="text-center text-[var(--text-muted)] mt-4 sm:mt-6 text-xs sm:text-sm">
           Don’t have an account?{" "}
           <Link href="/register" className="text-yellow-400 hover:underline">
             Register
