@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
+import InputField from "../components/InputField";
 
 export default function LoginPage() {
   const [form, setForm] = useState({ email: "", password: "" });
@@ -43,11 +44,10 @@ export default function LoginPage() {
       ></div>
 
       {/* Overlay */}
-      <div className="absolute inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm transition-colors duration-500"></div>
+      <div className="absolute inset-0 bg-black/5 dark:bg-black/70 backdrop-blur-sm transition-colors duration-500"></div>
 
       {/* Form Container */}
-      <div className="relative z-20 w-full max-w-xs sm:max-w-sm md:max-w-md bg-[var(--bg-nav)] dark:bg-[var(--bg-nav)] border border-[var(--dropdown-border)] backdrop-blur-lg rounded-xl p-6 sm:p-8 shadow-xl transition-colors duration-500">
-
+      <div className="relative z-20 w-full max-w-xs sm:max-w-sm md:max-w-md bg-[var(--bg-nav)] dark:bg-[var(--bg-nav)] border-yellow-200 border-2 backdrop-blur-lg rounded-xl p-6 sm:p-8 shadow-xl transition-colors duration-500">
         {/* Heading */}
         <h1 className="text-2xl sm:text-3xl font-[Poppins] text-center text-[var(--text-main)] mb-1 font-bold">
           Welcome Back
@@ -58,36 +58,25 @@ export default function LoginPage() {
 
         {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
-
           {/* Email */}
-          <div>
-            <label className="text-[var(--text-main)] font-semibold text-sm sm:text-base">
-              Email
-            </label>
-            <input
-              type="email"
-              name="email"
-              required
-              onChange={handleChange}
-              placeholder="example@mail.com"
-              className="w-full mt-1 px-4 py-2 bg-white/20 dark:bg-black/30 text-[var(--text-main)] placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:outline-none transition-colors"
-            />
-          </div>
+          <InputField
+            label="Email"
+            type="email"
+            name="email"
+            placeholder="example@mail.com"
+            onChange={handleChange}
+            required
+          />
 
           {/* Password */}
-          <div>
-            <label className="text-[var(--text-main)] font-semibold text-sm sm:text-base">
-              Password
-            </label>
-            <input
-              type="password"
-              name="password"
-              required
-              onChange={handleChange}
-              placeholder="••••••••"
-              className="w-full mt-1 px-4 py-2 bg-white/20 dark:bg-black/30 text-[var(--text-main)] placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:outline-none transition-colors"
-            />
-          </div>
+          <InputField
+            label="Password"
+            type="password"
+            name="password"
+            placeholder="••••••••"
+            onChange={handleChange}
+            required
+          />
 
           {/* Submit Button */}
           <button
@@ -101,7 +90,9 @@ export default function LoginPage() {
         {/* Divider */}
         <div className="flex items-center gap-3 my-4 sm:my-6">
           <div className="flex-1 h-px bg-white/30"></div>
-          <span className="text-[var(--text-muted)] text-xs sm:text-sm">OR</span>
+          <span className="text-[var(--text-muted)] text-xs sm:text-sm">
+            OR
+          </span>
           <div className="flex-1 h-px bg-white/30"></div>
         </div>
 

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
+import InputField from "../components/InputField";
 
 export default function RegisterPage() {
   const [form, setForm] = useState({
@@ -21,110 +22,111 @@ export default function RegisterPage() {
   function handleSubmit(e) {
     e.preventDefault();
 
-    // Check if user already exists
     const savedUser = localStorage.getItem("hm_user");
     if (savedUser) {
       const parsed = JSON.parse(savedUser);
-
       if (parsed.email === form.email) {
         alert("User already exists. Please login.");
         return;
       }
     }
 
-    // Save user to localStorage
     localStorage.setItem("hm_user", JSON.stringify(form));
-
     alert("Account created successfully!");
     window.location.href = "/login";
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[url('/bg-image.jpg')] bg-cover bg-center relative px-4">
+    <div
+      className="flex items-center justify-center relative w-screen overflow-x-hidden transition-colors duration-500"
+      style={{ minHeight: "calc(100vh - 80px)" }}
+    >
+      {/* Background */}
+      <div
+        className="absolute inset-0 bg-cover bg-center transition-transform duration-1000"
+        style={{ backgroundImage: "url('/bg-image.jpg')" }}
+      ></div>
 
       {/* Overlay */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+      <div className="absolute inset-0 bg-black/5 dark:bg-black/70 backdrop-blur-sm transition-colors duration-500"></div>
 
-      {/* Card */}
-      <div className="relative z-20 w-full max-w-md bg-white/10 dark:bg-black/20 border border-white/20 backdrop-blur-lg rounded-xl p-8 shadow-xl">
-
-        <h1 className="text-4xl font-playfair text-center text-white font-bold">
+      {/* Form Container */}
+      <div
+        className="relative z-20 w-full max-w-xs sm:max-w-sm md:max-w-md 
+        bg-[var(--bg-nav)]  dark:bg-[var(--bg-nav)] 
+        border border-[var(--dropdown-border)] 
+        backdrop-blur-lg rounded-xl p-6 sm:p-8 shadow-xl transition-colors duration-500"
+      >
+        {/* Heading */}
+        <h1 className="text-2xl sm:text-3xl font-[Poppins] text-center text-[var(--text-main)] mb-1 font-bold">
           Create Account
         </h1>
-
-        <p className="text-gray-200 text-center mt-2">
+        <p className="text-sm sm:text-base font-[Inter] text-center text-[var(--text-muted)] mb-4">
           Sign up to start managing your household items.
         </p>
 
         {/* Register Form */}
-        <form onSubmit={handleSubmit} className="mt-8 space-y-5">
-
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
           {/* Name */}
-          <div>
-            <label className="text-gray-200">Full Name</label>
-            <input
-              type="text"
-              name="name"
-              required
-              onChange={handleChange}
-              placeholder="John Doe"
-              className="w-full mt-1 px-4 py-2 bg-white/20 text-white placeholder-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none"
-            />
-          </div>
+          <InputField
+            label="Full Name"
+            type="text"
+            name="name"
+            placeholder="Your Name"
+            onChange={handleChange}
+            required
+          />
 
           {/* Email */}
-          <div>
-            <label className="text-gray-200">Email</label>
-            <input
-              type="email"
-              name="email"
-              required
-              onChange={handleChange}
-              placeholder="example@mail.com"
-              className="w-full mt-1 px-4 py-2 bg-white/20 text-white placeholder-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none"
-            />
-          </div>
+          <InputField
+            label="Email"
+            type="email"
+            name="email"
+            placeholder="example@mail.com"
+            onChange={handleChange}
+            required
+          />
 
           {/* Password */}
-          <div>
-            <label className="text-gray-200">Password</label>
-            <input
-              type="password"
-              name="password"
-              required
-              onChange={handleChange}
-              placeholder="••••••••"
-              className="w-full mt-1 px-4 py-2 bg-white/20 text-white placeholder-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none"
-            />
-          </div>
+          <InputField
+            label="Password"
+            type="password"
+            name="password"
+            placeholder="••••••••"
+            onChange={handleChange}
+            required
+          />
 
-          {/* Submit */}
+          {/* Submit Button */}
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold shadow-lg transition"
+            className="btn-theme w-full py-2 text-sm sm:text-base"
           >
             Register
           </button>
         </form>
 
         {/* Divider */}
-        <div className="flex items-center gap-3 my-6">
+        <div className="flex items-center gap-3 my-4 sm:my-6">
           <div className="flex-1 h-px bg-white/30"></div>
-          <span className="text-gray-200 text-sm">OR</span>
+          <span className="text-[var(--text-muted)] text-xs sm:text-sm">
+            OR
+          </span>
           <div className="flex-1 h-px bg-white/30"></div>
         </div>
 
         {/* Google OAuth */}
         <button
           onClick={() => signIn("google")}
-          className="w-full bg-white text-gray-700 py-2 rounded-lg font-semibold shadow hover:bg-gray-100 transition"
+          className="btn-theme w-full py-2 text-sm sm:text-base bg-white text-gray-700 hover:bg-gray-100 shadow transition"
         >
           Continue with Google
         </button>
 
-        <p className="text-center text-gray-300 mt-6">
+        {/* Link to Login */}
+        <p className="text-center text-[var(--text-muted)] mt-4 sm:mt-6 text-xs sm:text-sm">
           Already have an account?{" "}
-          <Link href="/login" className="text-blue-400 hover:underline">
+          <Link href="/login" className="text-yellow-400 hover:underline">
             Login
           </Link>
         </p>
