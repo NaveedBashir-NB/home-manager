@@ -1,26 +1,34 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Theme classes (use tailwind @apply if you prefer) */
+.theme-light {
+  --bg-main: #ffffff;
+  --bg-muted: #f7f7f8;
+  --text-main: #0b0b0b;
+  --text-muted: #6b7280;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+}
+.theme-dark {
+  --bg-main: #0b0b0d;
+  --bg-muted: #111118;
+  --text-main: #f3f4f6;
+  --text-muted: #9ca3af;
+  background-color: var(--bg-main);
+  color: var(--text-main);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* small animations (you can tune durations) */
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
+.animate-slideDown { animation: slideDown 170ms ease-out; }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
+.animate-fadeIn { animation: fadeIn 160ms ease-out; }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-}
+/* Optional: import Inter or other font in your global styles */
