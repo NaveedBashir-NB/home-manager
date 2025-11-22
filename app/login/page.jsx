@@ -39,7 +39,6 @@ export default function LoginPage() {
       parsed.password === form.password
     ) {
       localStorage.setItem("hm_session", "active");
-      alert("Login successful!");
       window.location.href = "/dashboard";
     } else {
       alert("Incorrect email or password.");
