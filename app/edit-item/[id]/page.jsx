@@ -1,128 +1,168 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import InputField from "@/components/InputField";
-import { ArrowLeft } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import InputField from "../../components/InputField";
 
-export default function EditItemPage({ params }) {
+export default function EditItemPage() {
+  const params = useParams();
   const router = useRouter();
-  const itemId = params.id;
 
-  const [item, setItem] = useState({
-    name: "",
-    category: "",
-    quantity: "",
-    description: "",
-  });
+  const [item, setItem] = useState(null);
+  const [categories, setCategories] = useState([]);
+  const [newCategory, setNewCategory] = useState("");
 
-  // Load item from localStorage
   useEffect(() => {
-    const stored = localStorage.getItem("hm_items");
-    if (stored) {
-      const items = JSON.parse(stored);
-      const selected = items[itemId];
+    const items = JSON.parse(localStorage.getItem("hm_items") || "[]");
+    const found = items.find((i) => i.id == params.id);
 
-      if (!selected) router.push("/dashboard"); // Invalid index
-      else setItem(selected);
+    if (!found) {
+      alert("Item not found!");
+      router.push("/dashboard");
+      return;
     }
-  }, [itemId, router]);
+
+    setItem(found);
+
+    const savedCategories = JSON.parse(localStorage.getItem("hm_categories") || "[]");
+    setCategories(savedCategories);
+  }, []);
 
   function handleChange(e) {
     setItem({ ...item, [e.target.name]: e.target.value });
   }
 
-  function handleSave() {
-    const stored = JSON.parse(localStorage.getItem("hm_items") || "[]");
-    stored[itemId] = item;
-    localStorage.setItem("hm_items", JSON.stringify(stored));
+  function handleAddCategory() {
+    if (!newCategory.trim()) return;
+
+    const updated = [...categories, newCategory.trim()];
+    setCategories(updated);
+    localStorage.setItem("hm_categories", JSON.stringify(updated));
+
+    setItem({ ...item, category: newCategory.trim() });
+    setNewCategory("");
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault();
+
+    if (!item.name || !item.category) {
+      alert("Please fill all fields");
+      return;
+    }
+
+    const items = JSON.parse(localStorage.getItem("hm_items") || "[]");
+    const updated = items.map((i) => (i.id == item.id ? item : i));
+
+    localStorage.setItem("hm_items", JSON.stringify(updated));
+
     router.push("/dashboard");
   }
 
+  if (!item) return null;
+
   return (
-    <div className="relative w-screen min-h-screen pt-24 transition-colors duration-500">
-      {/* Background Image */}
+    <div
+      className="flex items-center justify-center relative w-screen overflow-x-hidden transition-colors duration-500"
+      style={{ minHeight: "calc(100vh - 80px)" }}
+    >
+      {/* Background */}
       <div
-        className="absolute inset-0 bg-cover bg-center"
+        className="absolute inset-0 bg-cover bg-center transition-transform duration-1000"
         style={{ backgroundImage: "url('/bg-image.jpg')" }}
       ></div>
 
       {/* Overlay */}
-      <div className="absolute inset-0 bg-black/5 dark:bg-black/70 backdrop-blur-sm"></div>
+      <div className="absolute inset-0 bg-black/5 dark:bg-black/70 backdrop-blur-sm transition-colors duration-500"></div>
 
-      {/* Content */}
-      <main className="relative z-20 container max-w-xl pb-20">
+      {/* Form Card */}
+      <div className="relative z-20 w-full max-w-xs sm:max-w-sm md:max-w-md bg-[var(--bg-nav)] dark:bg-[var(--bg-nav)] border-yellow-200 border-2 backdrop-blur-lg rounded-xl p-6 sm:p-8 shadow-xl transition-colors duration-500">
+        <h1 className="text-2xl sm:text-3xl font-[Poppins] text-center text-[var(--text-main)] mb-1 font-bold">
+          Edit Item
+        </h1>
 
-        {/* Back Button */}
-        <button
-          onClick={() => router.back()}
-          className="flex items-center gap-2 mb-6 text-[var(--text-main)] hover:text-yellow-300 transition"
-        >
-          <ArrowLeft /> Back
-        </button>
-
-        {/* Card */}
-        <div
-          className="
-            bg-[var(--bg-nav)]
-            border-2 border-yellow-300
-            backdrop-blur-xl
-            rounded-2xl
-            shadow-xl
-            p-8
-            space-y-6
-          "
-        >
-          <h1 className="h1 text-center mb-4">Edit Item</h1>
-
-          {/* Fields */}
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
+          {/* Item Name */}
           <InputField
             label="Item Name"
+            type="text"
             name="name"
+            placeholder="e.g., Sugar, Soap, Oil"
             value={item.name}
             onChange={handleChange}
-            placeholder="Enter item name"
+            required
           />
 
-          <InputField
-            label="Category"
-            name="category"
-            value={item.category}
-            onChange={handleChange}
-            placeholder="Enter category"
-          />
+          {/* Category Selector */}
+          <div>
+            <label className="text-sm text-[var(--text-main)] font-medium">
+              Category
+            </label>
+            <select
+              name="category"
+              value={item.category}
+              onChange={handleChange}
+              className="w-full mt-1 p-3 rounded-lg border border-yellow-200 bg-[var(--bg-nav)] text-[var(--text-main)]"
+            >
+              <option value="">Select category</option>
+              {categories.map((cat, index) => (
+                <option key={index} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
 
-          <InputField
-            label="Quantity"
-            name="quantity"
-            value={item.quantity}
-            onChange={handleChange}
-            placeholder="Enter quantity"
-          />
+            {/* Add new category */}
+            <div className="flex gap-2 mt-2">
+              <input
+                type="text"
+                placeholder="Add new category"
+                value={newCategory}
+                onChange={(e) => setNewCategory(e.target.value)}
+                className="w-full p-2 rounded-lg border border-yellow-200 bg-[var(--bg-nav)] text-[var(--text-main)]"
+              />
+              <button
+                type="button"
+                onClick={handleAddCategory}
+                className="px-3 py-2 text-sm rounded-lg bg-yellow-300 font-semibold"
+              >
+                Add
+              </button>
+            </div>
+          </div>
 
-          <InputField
-            label="Description"
-            name="description"
-            value={item.description}
-            onChange={handleChange}
-            placeholder="Enter description"
-          />
+          {/* Status */}
+          <div>
+            <label className="text-sm text-[var(--text-main)] font-medium">
+              Status
+            </label>
+            <select
+              name="status"
+              value={item.status}
+              onChange={handleChange}
+              className="w-full mt-1 p-3 rounded-lg border border-yellow-200 bg-[var(--bg-nav)] text-[var(--text-main)]"
+            >
+              <option value="pending">Pending</option>
+              <option value="completed">Completed</option>
+              <option value="future">Future Needs</option>
+            </select>
+          </div>
 
-          {/* Buttons */}
-          <div className="flex justify-between mt-8">
+          <div className="flex flex-col sm:flex-row gap-3 mt-4">
             <button
+              type="button"
               onClick={() => router.push("/dashboard")}
-              className="btn-secondary"
+              className="w-full py-2 rounded-full font-semibold border border-yellow-300 text-[var(--text-main)] hover:bg-yellow-200"
             >
               Cancel
             </button>
 
-            <button onClick={handleSave} className="btn-theme">
-              Save Changes
+            <button type="submit" className="btn-theme w-full py-2">
+              Update Item
             </button>
           </div>
-        </div>
-      </main>
+        </form>
+      </div>
     </div>
   );
 }

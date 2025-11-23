@@ -7,6 +7,7 @@ export default function InputField({
   label,
   type = "text",
   name,
+  value,
   placeholder,
   onChange,
   required = false,
@@ -30,6 +31,7 @@ export default function InputField({
         name={name}
         required={required}
         onChange={onChange}
+        value={value}
         placeholder={placeholder}
         className={`w-full mt-1 px-4 py-2 ${
           isPassword ? "pr-12" : "pr-4"

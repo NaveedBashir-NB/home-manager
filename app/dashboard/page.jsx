@@ -22,15 +22,16 @@ export default function DashboardPage() {
   // Greeting
   useEffect(() => {
     const h = new Date().getHours();
-    setGreeting(h < 12 ? "Good Morning" : h < 17 ? "Good Afternoon" : "Good Evening");
+    setGreeting(
+      h < 12 ? "Good Morning" : h < 17 ? "Good Afternoon" : "Good Evening"
+    );
   }, []);
 
-  // Authentication Check
+  // Auth check & user load
   useEffect(() => {
     if (status === "loading") return;
 
     const localUser = isLocalLoggedIn();
-
     if (!session && !localUser) {
       router.push("/login");
       return;
@@ -39,33 +40,45 @@ export default function DashboardPage() {
     setUser(session?.user || JSON.parse(localStorage.getItem("hm_user")));
   }, [session, status, router]);
 
-  // Load Items
+  // Load items & categories from localStorage
   useEffect(() => {
     const saved = localStorage.getItem("hm_items");
     if (saved) {
       const parsed = JSON.parse(saved);
       setItems(parsed);
       setFilteredItems(parsed);
+    } else {
+      setItems([]);
+      setFilteredItems([]);
     }
+
+    // Ensure categories exist (do not mutate UI layout)
+    const savedCats = JSON.parse(localStorage.getItem("hm_categories") || "[]");
+    const defaultCategories = [
+      "grocery",
+      "kitchen",
+      "bathroom",
+      "household",
+      "future-needs",
+    ];
+    const merged = Array.from(new Set([...defaultCategories, ...savedCats]));
+    localStorage.setItem("hm_categories", JSON.stringify(merged));
   }, []);
 
-  // FILTER + SEARCH Logic
+  // Filter + search logic (keeps your original layout and semantics)
   useEffect(() => {
     let data = [...items];
 
-    // Search
     if (search.trim()) {
       data = data.filter((i) =>
         i.name.toLowerCase().includes(search.toLowerCase())
       );
     }
 
-    // Category Filter
     if (categoryFilter !== "all") {
       data = data.filter((i) => i.category === categoryFilter);
     }
 
-    // Status Filter
     if (statusFilter !== "all") {
       data = data.filter((i) => i.status === statusFilter);
     }
@@ -73,12 +86,36 @@ export default function DashboardPage() {
     setFilteredItems(data);
   }, [search, categoryFilter, statusFilter, items]);
 
-  const categories = [
-    { label: "Grocery", value: "grocery" },
-    { label: "Kitchen", value: "kitchen" },
-    { label: "Bathroom", value: "bathroom" },
-    { label: "Household", value: "household" },
-  ];
+  // Helpers to update localStorage + state
+  const saveItems = (updated) => {
+    setItems(updated);
+    localStorage.setItem("hm_items", JSON.stringify(updated));
+  };
+
+  // CRUD handlers
+  const markCompleted = (id) => {
+    const updated = items.map((x) =>
+      x.id === id ? { ...x, status: "completed" } : x
+    );
+    saveItems(updated);
+  };
+
+  const deleteItem = (id) => {
+    if (!confirm("Are you sure you want to delete this item?")) return;
+    const updated = items.filter((x) => x.id !== id);
+    saveItems(updated);
+  };
+
+  const goEdit = (id) => {
+    // edit route is app/edit-item/[id]/page.jsx -> navigate to /edit-item/<id>
+    router.push(`/edit-item/${id}`);
+  };
+
+  // categories for dropdown (load from localStorage)
+  const rawCats = JSON.parse(localStorage.getItem("hm_categories") || "[]");
+  const categories = rawCats.length
+    ? rawCats
+    : ["grocery", "kitchen", "bathroom", "household", "future-needs"];
 
   if (!user) return null;
 
@@ -103,7 +140,6 @@ export default function DashboardPage() {
         "
       >
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-
           {/* SEARCH BOX */}
           <input
             type="text"
@@ -117,7 +153,7 @@ export default function DashboardPage() {
             "
           />
 
-          {/* CATEGORY FILTER */}
+          {/* CATEGORY FILTER (dynamic categories) */}
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
@@ -129,13 +165,13 @@ export default function DashboardPage() {
           >
             <option value="all">All Categories</option>
             {categories.map((c) => (
-              <option key={c.value} value={c.value}>
-                {c.label}
+              <option key={c} value={c}>
+                {c.replace("-", " ").replace(/\b\w/g, (l) => l.toUpperCase())}
               </option>
             ))}
           </select>
 
-          {/* STATUS FILTER */}
+          {/* STATUS FILTER (including future-needs) */}
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
@@ -148,29 +184,55 @@ export default function DashboardPage() {
             <option value="all">All Status</option>
             <option value="pending">Pending</option>
             <option value="completed">Completed</option>
+            <option value="future-needs">Future Needs</option>
           </select>
         </div>
       </div>
 
       {/* QUICK ACTIONS */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
+      {/* QUICK ACTIONS */}
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-10">
         {[
-          { label: "Add Item", icon: "➕", action: "/add-item" },
-          { label: "All Items", icon: "📦", action: "/items" },
-          { label: "Pending", icon: "⏳", action: "/items?filter=pending" },
-          { label: "Completed", icon: "✅", action: "/items?filter=done" },
+          {
+            label: "Add Item",
+            icon: "➕",
+            action: () => router.push("/add-item"),
+          },
+          {
+            label: "All Items",
+            icon: "📦",
+            action: () => setStatusFilter("all"),
+          },
+          {
+            label: "Pending",
+            icon: "⏳",
+            action: () => setStatusFilter("pending"),
+          },
+          {
+            label: "Completed",
+            icon: "✅",
+            action: () => setStatusFilter("completed"),
+          },
+          {
+            label: "Future Needs",
+            icon: "🔮",
+            action: () => setStatusFilter("future-needs"),
+          },
         ].map((box) => (
           <div
             key={box.label}
-            onClick={() => router.push(box.action)}
+            onClick={box.action}
             className="
-              cursor-pointer bg-[var(--card-bg)]
-              border border-[var(--dropdown-border)] rounded-xl
-              p-6 text-center hover:scale-105 transition shadow-md
-            "
+        cursor-pointer bg-[var(--card-bg)]
+        border border-[var(--dropdown-border)]
+        rounded-xl p-6 text-center hover:scale-105 
+        transition shadow-md select-none
+      "
           >
             <div className="text-3xl mb-2">{box.icon}</div>
-            <p className="text-sm font-semibold">{box.label}</p>
+            <p className="text-sm font-semibold text-[var(--text-main)]">
+              {box.label}
+            </p>
           </div>
         ))}
       </div>
@@ -191,32 +253,67 @@ export default function DashboardPage() {
           <p className="text-[var(--text-muted)] text-sm">No items found.</p>
         ) : (
           <ul className="space-y-3">
-            {filteredItems.slice(0, 10).map((item, index) => (
+            {filteredItems.slice(0, 10).map((item) => (
               <li
-                key={index}
-                className="
-                  flex justify-between items-center p-3 rounded-lg
-                  bg-black/10 dark:bg-white/10
-                "
+                key={item.id}
+                className="flex justify-between items-center p-3 rounded-lg bg-black/10 dark:bg-white/10"
               >
-                <span>{item.name}</span>
+                <div className="flex items-center gap-3">
+                  <span>{item.name}</span>
+                </div>
 
-                <span
-                  className={`text-xs px-3 py-1 rounded-full ${
-                    item.status === "completed"
-                      ? "bg-green-500/20 text-green-400"
-                      : "bg-yellow-500/20 text-yellow-300"
-                  }`}
-                >
-                  {item.status}
-                </span>
+                {/* Status badge + action icons on right (Option A) */}
+                <div className="flex items-center gap-3">
+                  <span
+                    className={`text-xs px-3 py-1 rounded-full ${
+                      item.status === "completed"
+                        ? "bg-green-500/20 text-green-400"
+                        : item.status === "future-needs"
+                        ? "bg-blue-500/20 text-blue-400"
+                        : "bg-yellow-500/20 text-yellow-300"
+                    }`}
+                  >
+                    {item.status === "future-needs"
+                      ? "Future Needs"
+                      : item.status}
+                  </span>
+
+                  {/* Edit */}
+                  <button
+                    onClick={() => goEdit(item.id)}
+                    title="Edit"
+                    className="text-[var(--text-main)] hover:text-yellow-400 transition"
+                  >
+                    ✏️
+                  </button>
+
+                  {/* Mark Completed (only if not completed) */}
+                  {item.status !== "completed" && (
+                    <button
+                      onClick={() => markCompleted(item.id)}
+                      title="Mark completed"
+                      className="text-green-400 hover:text-green-300 transition"
+                    >
+                      ✔
+                    </button>
+                  )}
+
+                  {/* Delete */}
+                  <button
+                    onClick={() => deleteItem(item.id)}
+                    title="Delete"
+                    className="text-red-400 hover:text-red-300 transition"
+                  >
+                    🗑️
+                  </button>
+                </div>
               </li>
             ))}
           </ul>
         )}
       </div>
 
-      {/* TODAY'S TASKS */}
+      {/* TODAY'S PENDING TASKS */}
       <h2 className="text-xl font-bold mb-2 text-[var(--text-main)]">
         Today’s Pending Items
       </h2>
@@ -229,7 +326,9 @@ export default function DashboardPage() {
         "
       >
         {filteredItems.filter((i) => i.status === "pending").length === 0 ? (
-          <p className="text-[var(--text-muted)] text-sm">No pending tasks 🎉</p>
+          <p className="text-[var(--text-muted)] text-sm">
+            No pending tasks 🎉
+          </p>
         ) : (
           <ul className="space-y-3">
             {filteredItems
@@ -241,18 +340,26 @@ export default function DashboardPage() {
                   className="flex justify-between items-center p-3 rounded-lg bg-black/10 dark:bg-white/10"
                 >
                   <span>{item.name}</span>
-                  <button
-                    onClick={() => {
-                      const updated = items.map((x) =>
-                        x.id === item.id ? { ...x, status: "completed" } : x
-                      );
-                      setItems(updated);
-                      localStorage.setItem("hm_items", JSON.stringify(updated));
-                    }}
-                    className="text-green-400 font-semibold hover:text-green-300"
-                  >
-                    ✓
-                  </button>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => {
+                        const updated = items.map((x) =>
+                          x.id === item.id ? { ...x, status: "completed" } : x
+                        );
+                        saveItems(updated);
+                      }}
+                      className="text-green-400 font-semibold hover:text-green-300"
+                    >
+                      ✓
+                    </button>
+
+                    <button
+                      onClick={() => deleteItem(item.id)}
+                      className="text-red-400 font-semibold hover:text-red-300"
+                    >
+                      🗑
+                    </button>
+                  </div>
                 </li>
               ))}
           </ul>

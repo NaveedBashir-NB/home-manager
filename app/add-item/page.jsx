@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import InputField from "../components/InputField";
 
@@ -13,10 +13,32 @@ export default function AddItemPage() {
     status: "pending",
   });
 
+  const [categories, setCategories] = useState([]);
+  const [newCategory, setNewCategory] = useState("");
+
+  // Load categories from localStorage
+  useEffect(() => {
+    const saved = JSON.parse(localStorage.getItem("hm_categories") || "[]");
+
+    const defaultCategories = [
+      "grocery",
+      "kitchen",
+      "bathroom",
+      "household",
+      "future-needs", // new default category
+    ];
+
+    const merged = Array.from(new Set([...defaultCategories, ...saved]));
+
+    setCategories(merged);
+    localStorage.setItem("hm_categories", JSON.stringify(merged));
+  }, []);
+
   function handleChange(e) {
     setForm({ ...form, [e.target.name]: e.target.value });
   }
 
+  // Save item
   function handleSubmit(e) {
     e.preventDefault();
 
@@ -37,6 +59,26 @@ export default function AddItemPage() {
     router.push("/dashboard");
   }
 
+  // Add new custom category
+  function addCategory() {
+    if (!newCategory.trim()) {
+      alert("Enter a category name");
+      return;
+    }
+
+    const formatted = newCategory.toLowerCase().replace(/\s+/g, "-");
+
+    const updated = Array.from(new Set([...categories, formatted]));
+
+    setCategories(updated);
+    localStorage.setItem("hm_categories", JSON.stringify(updated));
+
+    setForm({ ...form, category: formatted });
+    setNewCategory("");
+
+    alert("Category added successfully!");
+  }
+
   return (
     <div
       className="flex items-center justify-center relative w-screen overflow-x-hidden transition-colors duration-500"
@@ -49,10 +91,10 @@ export default function AddItemPage() {
       ></div>
 
       {/* Overlay */}
-      <div className="absolute inset-0 bg-black/5 dark:bg-black/70 backdrop-blur-sm transition-colors duration-500"></div>
+      <div className="absolute inset-0 bg-black/5 dark:bg-black/70 backdrop-blur-sm"></div>
 
       {/* Form Card */}
-      <div className="relative z-20 w-full max-w-xs sm:max-w-sm md:max-w-md bg-[var(--bg-nav)] dark:bg-[var(--bg-nav)] border-yellow-200 border-2 backdrop-blur-lg rounded-xl p-6 sm:p-8 shadow-xl transition-colors duration-500">
+      <div className="relative z-20 w-full max-w-xs sm:max-w-sm md:max-w-md bg-[var(--bg-nav)] dark:bg-[var(--bg-nav)] border-yellow-200 border-2 backdrop-blur-lg rounded-xl p-6 sm:p-8 shadow-xl">
         <h1 className="text-2xl sm:text-3xl font-[Poppins] text-center text-[var(--text-main)] mb-1 font-bold">
           Add New Item
         </h1>
@@ -72,7 +114,7 @@ export default function AddItemPage() {
             required
           />
 
-          {/* Category */}
+          {/* Category Selection */}
           <div>
             <label className="text-sm text-[var(--text-main)] font-medium">
               Category
@@ -84,11 +126,32 @@ export default function AddItemPage() {
               className="w-full mt-1 p-3 rounded-lg border border-yellow-200 bg-[var(--bg-nav)] text-[var(--text-main)] focus:outline-none"
             >
               <option value="">Select category</option>
-              <option value="grocery">Grocery</option>
-              <option value="kitchen">Kitchen</option>
-              <option value="bathroom">Bathroom</option>
-              <option value="household">Household</option>
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat.replace("-", " ").replace(/\b\w/g, (l) => l.toUpperCase())}
+                </option>
+              ))}
             </select>
+          </div>
+
+          {/* Add Category Field */}
+          <div className="mt-3">
+            <InputField
+              label="Add New Category"
+              type="text"
+              name="newCategory"
+              placeholder="e.g., Electronics, Toys"
+              value={newCategory}
+              onChange={(e) => setNewCategory(e.target.value)}
+            />
+
+            <button
+              type="button"
+              onClick={addCategory}
+              className="w-full mt-2 py-2 rounded-full font-semibold bg-yellow-400 text-black hover:bg-yellow-500 transition"
+            >
+              Add Category
+            </button>
           </div>
 
           {/* Status */}
@@ -104,10 +167,11 @@ export default function AddItemPage() {
             >
               <option value="pending">Pending</option>
               <option value="completed">Completed</option>
-              <option value="later">Later</option>
+              <option value="future-needs">Future Needs</option>
             </select>
           </div>
 
+          {/* Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 mt-4">
             <button
               type="button"
