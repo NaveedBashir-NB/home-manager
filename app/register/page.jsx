@@ -2,27 +2,25 @@
 
 import { useState, useEffect } from "react";
 import { signIn, useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import InputField from "../components/InputField";
-import { saveGoogleUser } from "../utils/saveGoogleUser";
 
 export default function RegisterPage() {
+  const router = useRouter();
+  const { data: session } = useSession();
+  const [loading, setLoading] = useState(false);
+
   const [form, setForm] = useState({
     name: "",
     email: "",
     password: "",
   });
 
-  const { data: session } = useSession();
-
-  // Auto-register Google user into localStorage (and start session)
+  // Auto redirect if logged in (Google user)
   useEffect(() => {
     if (session?.user) {
-      saveGoogleUser(session);
-      if (typeof window !== "undefined") {
-        localStorage.setItem("hm_session", "active");
-      }
-      window.location.href = "/dashboard";
+      router.replace("/dashboard");
     }
   }, [session]);
 
@@ -33,25 +31,35 @@ export default function RegisterPage() {
     });
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
+    setLoading(true);
 
-    const savedUser = localStorage.getItem("hm_user");
+    // Call Register API
+    const res = await fetch("/api/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form),
+    });
 
-    if (savedUser) {
-      const parsed = JSON.parse(savedUser);
-      if (parsed.email === form.email) {
-        alert("User already exists. Please login.");
-        return;
-      }
+    setLoading(false);
+
+    if (res.status === 400) {
+      const data = await res.json();
+      alert(data.message);
+      return;
     }
 
-    // Save user and set session active
-    localStorage.setItem("hm_user", JSON.stringify(form));
-    localStorage.setItem("hm_session", "active");
-
     alert("Account created successfully!");
-    window.location.href = "/dashboard";
+
+    // Auto login after register
+    await signIn("credentials", {
+      redirect: false,
+      email: form.email,
+      password: form.password,
+    });
+
+    router.replace("/dashboard");
   }
 
   return (
@@ -70,7 +78,6 @@ export default function RegisterPage() {
 
       {/* Form Container */}
       <div className="relative z-20 w-full max-w-xs sm:max-w-sm md:max-w-md bg-[var(--bg-nav)] dark:bg-[var(--bg-nav)] border border-[var(--dropdown-border)] backdrop-blur-lg rounded-xl p-6 sm:p-8 shadow-xl transition-colors duration-500">
-
         <h1 className="text-2xl sm:text-3xl font-[Poppins] text-center text-[var(--text-main)] mb-1 font-bold">
           Create Account
         </h1>
@@ -106,19 +113,21 @@ export default function RegisterPage() {
             required
           />
 
-          <button type="submit" className="btn-theme w-full py-2 text-sm sm:text-base">
-            Register
+          <button
+            type="submit"
+            className="btn-theme w-full py-2 text-sm sm:text-base"
+            disabled={loading}
+          >
+            {loading ? "Please wait..." : "Register"}
           </button>
         </form>
 
-        {/* Divider */}
         <div className="flex items-center gap-3 my-4 sm:my-6">
           <div className="flex-1 h-px bg-white/30"></div>
           <span className="text-[var(--text-muted)] text-xs sm:text-sm">OR</span>
           <div className="flex-1 h-px bg-white/30"></div>
         </div>
 
-        {/* Google Login */}
         <button
           onClick={() => signIn("google")}
           className="btn-theme w-full py-2 text-sm sm:text-base bg-white text-gray-700 hover:bg-gray-100 shadow transition"

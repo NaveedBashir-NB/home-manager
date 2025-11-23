@@ -1,0 +1,15 @@
+[
+  {
+    "id": "1",
+    "name": "Naveed Bashir",
+    "email": "naveedbashir.nb@gmail.com",
+    "password": null,
+    "provider": "google"
+  },
+  {
+    "id": 1763915126770,
+    "name": "Khuzaima Naveed",
+    "email": "mc&pp@kn.com",
+    "password": "$2b$10$2CXrEXEudz8hDEVPwvrucecALeMEQFRa7pg4c5kH85AHpuLw9x2YS"
+  }
+]

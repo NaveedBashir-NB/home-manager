@@ -2,27 +2,20 @@
 
 import { useState, useEffect } from "react";
 import { signIn, useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import InputField from "../components/InputField";
-import { saveGoogleUser } from "../utils/saveGoogleUser";
 
 export default function LoginPage() {
-  const [form, setForm] = useState({ email: "", password: "" });
+  const router = useRouter();
   const { data: session } = useSession();
+  const [form, setForm] = useState({ email: "", password: "" });
+  const [loading, setLoading] = useState(false);
 
-  // If Google login is successful → Save user to localStorage + set session
+  // If already logged in → redirect
   useEffect(() => {
     if (session?.user) {
-      // save per-user record and pointer
-      saveGoogleUser(session);
-
-      // mark local session active for parity
-      if (typeof window !== "undefined") {
-        localStorage.setItem("hm_session", "active");
-      }
-
-      // redirect to dashboard
-      window.location.href = "/dashboard";
+      router.replace("/dashboard");
     }
   }, [session]);
 
@@ -30,33 +23,34 @@ export default function LoginPage() {
     setForm({ ...form, [e.target.name]: e.target.value });
   }
 
-  function handleSubmit(e) {
+  // 🔥 UPDATED handleSubmit
+  async function handleSubmit(e) {
     e.preventDefault();
+    setLoading(true);
 
-    const savedUser = localStorage.getItem("hm_user");
+    const result = await signIn("credentials", {
+      redirect: false,
+      email: form.email,
+      password: form.password,
+    });
 
-    if (!savedUser) {
-      alert("No user found. Please register first.");
+    setLoading(false);
+
+    if (result?.error) {
+      alert(result.error);
       return;
     }
 
-    const parsed = JSON.parse(savedUser);
+    // 🔥 FIX: Fetch next-auth session and store user email locally
+    const res = await fetch("/api/auth/session");
+    const data = await res.json();
 
-    // simple credential check against stored user
-    if (
-      parsed.email === form.email &&
-      parsed.password === form.password
-    ) {
-      // set session active flag
+    if (data?.user) {
+      localStorage.setItem("hm_user", JSON.stringify(data.user)); // stores email, name, etc.
       localStorage.setItem("hm_session", "active");
-
-      // ensure hm_user reflects current user (overwrite)
-      localStorage.setItem("hm_user", JSON.stringify(parsed));
-
-      window.location.href = "/dashboard";
-    } else {
-      alert("Incorrect email or password.");
     }
+
+    router.replace("/dashboard");
   }
 
   return (
@@ -101,21 +95,21 @@ export default function LoginPage() {
             required
           />
 
-          <button type="submit" className="btn-theme w-full py-2 text-sm sm:text-base">
-            Login
+          <button
+            type="submit"
+            className="btn-theme w-full py-2 text-sm sm:text-base"
+            disabled={loading}
+          >
+            {loading ? "Please wait..." : "Login"}
           </button>
         </form>
 
-        {/* Divider */}
         <div className="flex items-center gap-3 my-4 sm:my-6">
           <div className="flex-1 h-px bg-white/30"></div>
-          <span className="text-[var(--text-muted)] text-xs sm:text-sm">
-            OR
-          </span>
+          <span className="text-[var(--text-muted)] text-xs sm:text-sm">OR</span>
           <div className="flex-1 h-px bg-white/30"></div>
         </div>
 
-        {/* Google Login */}
         <button
           onClick={() => signIn("google")}
           className="btn-theme w-full py-2 text-sm sm:text-base bg-white text-gray-700 hover:bg-gray-100 shadow transition"

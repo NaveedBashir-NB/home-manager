@@ -1,3 +1,4 @@
+// /app/dashboard/page.jsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -15,6 +16,7 @@ export default function DashboardPage() {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [categories, setCategories] = useState([]);
 
   const [greeting, setGreeting] = useState("");
 
@@ -24,41 +26,47 @@ export default function DashboardPage() {
     setGreeting(h < 12 ? "Good Morning" : h < 17 ? "Good Afternoon" : "Good Evening");
   }, []);
 
-  // Helper to build per-user keys
-  const getUserKeys = (u) => {
-    const emailSafe = u?.email?.replace(/[@.]/g, "_") || "anon";
-    return {
-      itemsKey: `hm_items_${emailSafe}`,
-      catsKey: `hm_categories_${emailSafe}`,
-    };
+  // helper: get active user object
+  const getActiveUser = () => {
+    if (session?.user) return session.user;
+    const localSession = typeof window !== "undefined" && localStorage.getItem("hm_session") === "active";
+    return localSession ? JSON.parse(localStorage.getItem("hm_user") || "null") : null;
   };
 
-  // Auth check & user load
+  // load user, items, categories
   useEffect(() => {
     if (status === "loading") return;
 
-    const localSession =
-      typeof window !== "undefined" && localStorage.getItem("hm_session") === "active";
-    const localUser = localSession ? JSON.parse(localStorage.getItem("hm_user") || "null") : null;
-
-    if (!session && !localUser) {
+    const activeUser = getActiveUser();
+    if (!activeUser) {
       router.push("/login");
       return;
     }
-
-    const activeUser = session?.user || localUser;
     setUser(activeUser);
 
-    const { itemsKey, catsKey } = getUserKeys(activeUser);
+    const email = encodeURIComponent(activeUser.email);
 
-    const savedItems = JSON.parse(localStorage.getItem(itemsKey) || "[]");
-    setItems(savedItems);
-    setFilteredItems(savedItems);
+    // fetch items
+    fetch(`/api/items?email=${email}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setItems(data || []);
+        setFilteredItems(data || []);
+      })
+      .catch(() => {
+        setItems([]);
+        setFilteredItems([]);
+      });
 
-    const savedCats = JSON.parse(localStorage.getItem(catsKey) || "[]");
-    const defaultCategories = ["grocery", "kitchen", "bathroom", "household", "future-needs"];
-    const merged = Array.from(new Set([...defaultCategories, ...savedCats]));
-    localStorage.setItem(catsKey, JSON.stringify(merged));
+    // fetch categories
+    fetch(`/api/categories?email=${email}`)
+      .then((res) => res.json())
+      .then((cats) => {
+        setCategories(cats || ["grocery","kitchen","bathroom","household","future-needs"]);
+      })
+      .catch(() => {
+        setCategories(["grocery","kitchen","bathroom","household","future-needs"]);
+      });
   }, [session, status, router]);
 
   // Filter + search logic
@@ -80,37 +88,47 @@ export default function DashboardPage() {
     setFilteredItems(data);
   }, [search, categoryFilter, statusFilter, items]);
 
-  // Save items
-  const saveItems = (updated) => {
-    setItems(updated);
-    if (!user) return;
-    const { itemsKey } = getUserKeys(user);
-    localStorage.setItem(itemsKey, JSON.stringify(updated));
+  // Helpers to update state after server call
+  const refreshItems = async () => {
+    if (!user?.email) return;
+    const email = encodeURIComponent(user.email);
+    const res = await fetch(`/api/items?email=${email}`);
+    const data = await res.json();
+    setItems(data || []);
   };
 
-  // CRUD actions
-  const markCompleted = (id) => {
-    const updated = items.map((x) => (x.id === id ? { ...x, status: "completed" } : x));
-    saveItems(updated);
+  // mark completed via API (PUT)
+  const markCompleted = async (id) => {
+    if (!user?.email) return;
+    const email = user.email;
+    const existing = items.find(i => i.id === id);
+    if (!existing) return;
+
+    const updatedItem = { ...existing, status: "completed" };
+
+    await fetch(`/api/items/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, item: updatedItem }),
+    });
+
+    await refreshItems();
   };
 
-  const deleteItem = (id) => {
+  // delete via API
+  const deleteItem = async (id) => {
     if (!confirm("Are you sure you want to delete this item?")) return;
-    const updated = items.filter((x) => x.id !== id);
-    saveItems(updated);
+    if (!user?.email) return;
+    const email = encodeURIComponent(user.email);
+
+    await fetch(`/api/items/${id}?email=${email}`, { method: "DELETE" });
+
+    await refreshItems();
   };
 
   const goEdit = (id) => {
     router.push(`/edit-item/${id}`);
   };
-
-  // categories for dropdown
-  const catsRaw = user
-    ? JSON.parse(localStorage.getItem(getUserKeys(user).catsKey) || "[]")
-    : [];
-  const categories = catsRaw.length
-    ? catsRaw
-    : ["grocery", "kitchen", "bathroom", "household", "future-needs"];
 
   if (!user) return null;
 
@@ -182,9 +200,7 @@ export default function DashboardPage() {
       </div>
 
       {/* FILTERED RESULTS LIST */}
-      <h2 className="text-xl font-bold mb-3 text-[var(--text-main)]">
-        Filtered Items ({filteredItems.length})
-      </h2>
+      <h2 className="text-xl font-bold mb-3 text-[var(--text-main)]">Filtered Items ({filteredItems.length})</h2>
 
       <div className="bg-[var(--card-bg)] p-5 rounded-xl border border-[var(--dropdown-border)] shadow mb-10">
         {filteredItems.length === 0 ? (
@@ -192,58 +208,24 @@ export default function DashboardPage() {
         ) : (
           <ul className="space-y-3">
             {filteredItems.slice(0, 10).map((item) => (
-              <li
-                key={item.id}
-                className="flex justify-between items-center p-3 rounded-lg bg-black/10 dark:bg-white/10"
-              >
+              <li key={item.id} className="flex justify-between items-center p-3 rounded-lg bg-black/10 dark:bg-white/10">
                 <div className="flex flex-col">
                   <span className="font-semibold text-[var(--text-main)]">{item.name}</span>
-
-                  {item.description && (
-                    <span className="text-sm text-[var(--text-muted)] mt-0.5">
-                      {item.description}
-                    </span>
-                  )}
+                  {item.description && <span className="text-sm text-[var(--text-muted)] mt-0.5">{item.description}</span>}
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <span
-                    className={`text-xs font-semibold px-5 py-2 rounded-full  ${
-                      item.status === "completed"
-                        ? "bg-green-500/30 text-green-800"
-                        : item.status === "future-needs"
-                        ? "bg-blue-500/30 text-blue-800"
-                        : "bg-yellow-500/30 text-yellow-800"
-                    }`}
-                  >
+                  <span className={`text-xs font-semibold px-5 py-2 rounded-full  ${item.status === "completed" ? "bg-green-500/30 text-green-800" : item.status === "future-needs" ? "bg-blue-500/30 text-blue-800" : "bg-yellow-500/30 text-yellow-800"}`}>
                     {item.status === "future-needs" ? "Future Needs" : item.status}
                   </span>
 
-                  <button
-                    onClick={() => goEdit(item.id)}
-                    title="Edit"
-                    className="text-[var(--text-main)] hover:text-yellow-400 transition"
-                  >
-                    ✏️
-                  </button>
+                  <button onClick={() => goEdit(item.id)} title="Edit" className="text-[var(--text-main)] hover:text-yellow-400 transition">✏️</button>
 
                   {item.status !== "completed" && (
-                    <button
-                      onClick={() => markCompleted(item.id)}
-                      title="Mark completed"
-                      className="text-green-400 hover:text-green-300 transition"
-                    >
-                      ✔
-                    </button>
+                    <button onClick={() => markCompleted(item.id)} title="Mark completed" className="text-green-400 hover:text-green-300 transition">✔</button>
                   )}
 
-                  <button
-                    onClick={() => deleteItem(item.id)}
-                    title="Delete"
-                    className="text-red-400 hover:text-red-300 transition"
-                  >
-                    🗑️
-                  </button>
+                  <button onClick={() => deleteItem(item.id)} title="Delete" className="text-red-400 hover:text-red-300 transition">🗑️</button>
                 </div>
               </li>
             ))}
@@ -251,53 +233,26 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* TODAY'S PENDING ITEMS */}
+      {/* TODAY'S PENDING TASKS */}
       <h2 className="text-xl font-bold mb-2 text-[var(--text-main)]">Today’s Pending Items</h2>
-
       <div className="bg-[var(--card-bg)] p-5 rounded-xl border border-[var(--dropdown-border)] shadow">
         {filteredItems.filter((i) => i.status === "pending").length === 0 ? (
           <p className="text-[var(--text-muted)] text-sm">No pending tasks 🎉</p>
         ) : (
           <ul className="space-y-3">
-            {filteredItems
-              .filter((i) => i.status === "pending")
-              .slice(0, 5)
-              .map((item) => (
-                <li
-                  key={item.id}
-                  className="flex justify-between items-center p-3 rounded-lg bg-black/10 dark:bg-white/10"
-                >
-                  <div className="flex flex-col">
-                    <span className="font-semibold text-[var(--text-main)]">{item.name}</span>
+            {filteredItems.filter((i) => i.status === "pending").slice(0, 5).map((item) => (
+              <li key={item.id} className="flex justify-between items-center p-3 rounded-lg bg-black/10 dark:bg-white/10">
+                <div className="flex flex-col">
+                  <span className="font-semibold text-[var(--text-main)]">{item.name}</span>
+                  {item.description && <span className="text-sm text-[var(--text-muted)] mt-0.5">{item.description}</span>}
+                </div>
 
-                    {item.description && (
-                      <span className="text-sm text-[var(--text-muted)] mt-0.5">
-                        {item.description}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => {
-                        const updated = items.map((x) =>
-                          x.id === item.id ? { ...x, status: "completed" } : x
-                        );
-                        saveItems(updated);
-                      }}
-                      className="text-green-400 font-semibold hover:text-green-300"
-                    >
-                      ✓
-                    </button>
-                    <button
-                      onClick={() => deleteItem(item.id)}
-                      className="text-red-400 font-semibold hover:text-red-300"
-                    >
-                      🗑
-                    </button>
-                  </div>
-                </li>
-              ))}
+                <div className="flex gap-3">
+                  <button onClick={async () => { await markCompleted(item.id); }} className="text-green-400 font-semibold hover:text-green-300">✓</button>
+                  <button onClick={() => deleteItem(item.id)} className="text-red-400 font-semibold hover:text-red-300">🗑</button>
+                </div>
+              </li>
+            ))}
           </ul>
         )}
       </div>
