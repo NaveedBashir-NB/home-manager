@@ -15,10 +15,13 @@ export default function RegisterPage() {
 
   const { data: session } = useSession();
 
-  // Auto-register Google user into localStorage
+  // Auto-register Google user into localStorage (and start session)
   useEffect(() => {
     if (session?.user) {
       saveGoogleUser(session);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("hm_session", "active");
+      }
       window.location.href = "/dashboard";
     }
   }, [session]);
@@ -43,9 +46,12 @@ export default function RegisterPage() {
       }
     }
 
+    // Save user and set session active
     localStorage.setItem("hm_user", JSON.stringify(form));
+    localStorage.setItem("hm_session", "active");
+
     alert("Account created successfully!");
-    window.location.href = "/login";
+    window.location.href = "/dashboard";
   }
 
   return (

@@ -16,16 +16,26 @@ export default function Navbar() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [localUser, setLocalUser] = useState(null);
 
-  // Load local user (manual login)
+  // Load local user only when there is an active local session
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const usr = JSON.parse(localStorage.getItem("hm_user") || "null");
-      setLocalUser(usr);
+    if (typeof window === "undefined") return;
+
+    const isLocalActive = localStorage.getItem("hm_session") === "active";
+    if (isLocalActive) {
+      try {
+        const usr = JSON.parse(localStorage.getItem("hm_user") || "null");
+        setLocalUser(usr);
+      } catch {
+        setLocalUser(null);
+      }
+    } else {
+      setLocalUser(null);
     }
   }, []);
 
-  // Combined user (NextAuth or Local Login)
-  const loggedInUser = session?.user || localUser;
+  // Combined user (NextAuth or Local Login) — only if session is active or localUser exists
+  const localSessionActive = typeof window !== "undefined" && localStorage.getItem("hm_session") === "active";
+  const loggedInUser = session?.user || (localSessionActive ? localUser : null);
 
   const initials = loggedInUser?.name
     ? loggedInUser.name
@@ -35,29 +45,39 @@ export default function Navbar() {
         .toUpperCase()
     : "";
 
-  function handleLogout() {
+  async function handleLogout() {
     setLoggingOut(true);
     toast.loading("Logging out...");
 
-    // Clear local login
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("hm_user");
-      localStorage.removeItem("hm_session");
-      setLocalUser(null);
+    // For local login: remove only the session flag. Keep the user record intact.
+    const doLocalLogout = !session;
+
+    if (doLocalLogout) {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("hm_session");
+        // KEEP localStorage 'hm_user' so user doesn't need to re-register
+      }
+
+      // Redirect immediately so navbar doesn't flicker
+      setTimeout(() => {
+        toast.dismiss();
+        toast.success("Goodbye! See you soon 👋");
+        window.location.href = "/";
+      }, 700);
+      return;
     }
 
-    setTimeout(() => {
+    // If OAuth (next-auth) is active, call signOut which will redirect.
+    // Do NOT clear hm_user here (we want to keep stored record).
+    try {
+      // next-auth signOut will redirect to callbackUrl
+      await signOut({ callbackUrl: "/" });
+      // signOut handles redirect; we don't need to modify localStorage here
+    } catch (err) {
       toast.dismiss();
-      toast.success("Goodbye! See you soon 👋");
-
-      // Logout from Google OAuth (only if session exists)
-      if (session) {
-        signOut({ callbackUrl: "/" });
-      } else {
-        // For local login, just redirect
-        window.location.href = "/";
-      }
-    }, 1000);
+      toast.error("Logout failed. Try again.");
+      setLoggingOut(false);
+    }
   }
 
   return (

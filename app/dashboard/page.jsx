@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { isLocalLoggedIn } from "../utils/checkAuth";
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
@@ -22,57 +21,52 @@ export default function DashboardPage() {
   // Greeting
   useEffect(() => {
     const h = new Date().getHours();
-    setGreeting(
-      h < 12 ? "Good Morning" : h < 17 ? "Good Afternoon" : "Good Evening"
-    );
+    setGreeting(h < 12 ? "Good Morning" : h < 17 ? "Good Afternoon" : "Good Evening");
   }, []);
+
+  // Helper to build per-user keys
+  const getUserKeys = (u) => {
+    const emailSafe = u?.email?.replace(/[@.]/g, "_") || "anon";
+    return {
+      itemsKey: `hm_items_${emailSafe}`,
+      catsKey: `hm_categories_${emailSafe}`,
+    };
+  };
 
   // Auth check & user load
   useEffect(() => {
     if (status === "loading") return;
 
-    const localUser = isLocalLoggedIn();
+    const localSession =
+      typeof window !== "undefined" && localStorage.getItem("hm_session") === "active";
+    const localUser = localSession ? JSON.parse(localStorage.getItem("hm_user") || "null") : null;
+
     if (!session && !localUser) {
       router.push("/login");
       return;
     }
 
-    setUser(session?.user || JSON.parse(localStorage.getItem("hm_user")));
+    const activeUser = session?.user || localUser;
+    setUser(activeUser);
+
+    const { itemsKey, catsKey } = getUserKeys(activeUser);
+
+    const savedItems = JSON.parse(localStorage.getItem(itemsKey) || "[]");
+    setItems(savedItems);
+    setFilteredItems(savedItems);
+
+    const savedCats = JSON.parse(localStorage.getItem(catsKey) || "[]");
+    const defaultCategories = ["grocery", "kitchen", "bathroom", "household", "future-needs"];
+    const merged = Array.from(new Set([...defaultCategories, ...savedCats]));
+    localStorage.setItem(catsKey, JSON.stringify(merged));
   }, [session, status, router]);
 
-  // Load items & categories from localStorage
-  useEffect(() => {
-    const saved = localStorage.getItem("hm_items");
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      setItems(parsed);
-      setFilteredItems(parsed);
-    } else {
-      setItems([]);
-      setFilteredItems([]);
-    }
-
-    // Ensure categories exist (do not mutate UI layout)
-    const savedCats = JSON.parse(localStorage.getItem("hm_categories") || "[]");
-    const defaultCategories = [
-      "grocery",
-      "kitchen",
-      "bathroom",
-      "household",
-      "future-needs",
-    ];
-    const merged = Array.from(new Set([...defaultCategories, ...savedCats]));
-    localStorage.setItem("hm_categories", JSON.stringify(merged));
-  }, []);
-
-  // Filter + search logic (keeps your original layout and semantics)
+  // Filter + search logic
   useEffect(() => {
     let data = [...items];
 
     if (search.trim()) {
-      data = data.filter((i) =>
-        i.name.toLowerCase().includes(search.toLowerCase())
-      );
+      data = data.filter((i) => i.name.toLowerCase().includes(search.toLowerCase()));
     }
 
     if (categoryFilter !== "all") {
@@ -86,17 +80,17 @@ export default function DashboardPage() {
     setFilteredItems(data);
   }, [search, categoryFilter, statusFilter, items]);
 
-  // Helpers to update localStorage + state
+  // Save items
   const saveItems = (updated) => {
     setItems(updated);
-    localStorage.setItem("hm_items", JSON.stringify(updated));
+    if (!user) return;
+    const { itemsKey } = getUserKeys(user);
+    localStorage.setItem(itemsKey, JSON.stringify(updated));
   };
 
-  // CRUD handlers
+  // CRUD actions
   const markCompleted = (id) => {
-    const updated = items.map((x) =>
-      x.id === id ? { ...x, status: "completed" } : x
-    );
+    const updated = items.map((x) => (x.id === id ? { ...x, status: "completed" } : x));
     saveItems(updated);
   };
 
@@ -107,14 +101,15 @@ export default function DashboardPage() {
   };
 
   const goEdit = (id) => {
-    // edit route is app/edit-item/[id]/page.jsx -> navigate to /edit-item/<id>
     router.push(`/edit-item/${id}`);
   };
 
-  // categories for dropdown (load from localStorage)
-  const rawCats = JSON.parse(localStorage.getItem("hm_categories") || "[]");
-  const categories = rawCats.length
-    ? rawCats
+  // categories for dropdown
+  const catsRaw = user
+    ? JSON.parse(localStorage.getItem(getUserKeys(user).catsKey) || "[]")
+    : [];
+  const categories = catsRaw.length
+    ? catsRaw
     : ["grocery", "kitchen", "bathroom", "household", "future-needs"];
 
   if (!user) return null;
@@ -126,42 +121,24 @@ export default function DashboardPage() {
         <h1 className="text-3xl sm:text-4xl font-bold text-[var(--text-main)]">
           {greeting}, {user.name.split(" ")[0]} 👋
         </h1>
-        <p className="text-[var(--text-muted)] mt-1">
-          Manage your daily household items easily.
-        </p>
+        <p className="text-[var(--text-muted)] mt-1">Manage your daily household items easily.</p>
       </div>
 
       {/* SEARCH + FILTERS */}
-      <div
-        className="
-          bg-[var(--card-bg)]
-          border border-[var(--dropdown-border)]
-          rounded-xl p-5 mb-10 shadow-lg backdrop-blur-xl
-        "
-      >
+      <div className="bg-[var(--card-bg)] border border-[var(--dropdown-border)] rounded-xl p-5 mb-10 shadow-lg backdrop-blur-xl">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {/* SEARCH BOX */}
           <input
             type="text"
             placeholder="Search items..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="
-              w-full px-4 py-2 rounded-xl bg-black/10 dark:bg-white/10 
-              border border-[var(--dropdown-border)] text-[var(--text-main)]
-              focus:outline-none focus:border-yellow-300 transition
-            "
+            className="w-full px-4 py-2 rounded-xl bg-black/10 dark:bg-white/10 border border-[var(--dropdown-border)] text-[var(--text-main)] focus:outline-none focus:border-yellow-300 transition"
           />
 
-          {/* CATEGORY FILTER (dynamic categories) */}
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="
-              w-full px-4 py-2 rounded-xl bg-black/10 dark:bg-white/10 
-              border border-[var(--dropdown-border)] text-[var(--text-main)]
-              focus:outline-none focus:border-yellow-300 transition
-            "
+            className="w-full px-4 py-2 rounded-xl bg-black/10 dark:bg-white/10 border border-[var(--dropdown-border)] text-[var(--text-main)] focus:outline-none focus:border-yellow-300 transition"
           >
             <option value="all">All Categories</option>
             {categories.map((c) => (
@@ -171,15 +148,10 @@ export default function DashboardPage() {
             ))}
           </select>
 
-          {/* STATUS FILTER (including future-needs) */}
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="
-              w-full px-4 py-2 rounded-xl bg-black/10 dark:bg-white/10
-              border border-[var(--dropdown-border)] text-[var(--text-main)]
-              focus:outline-none focus:border-yellow-300 transition
-            "
+            className="w-full px-4 py-2 rounded-xl bg-black/10 dark:bg-white/10 border border-[var(--dropdown-border)] text-[var(--text-main)] focus:outline-none focus:border-yellow-300 transition"
           >
             <option value="all">All Status</option>
             <option value="pending">Pending</option>
@@ -190,49 +162,21 @@ export default function DashboardPage() {
       </div>
 
       {/* QUICK ACTIONS */}
-      {/* QUICK ACTIONS */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-10">
         {[
-          {
-            label: "Add Item",
-            icon: "➕",
-            action: () => router.push("/add-item"),
-          },
-          {
-            label: "All Items",
-            icon: "📦",
-            action: () => setStatusFilter("all"),
-          },
-          {
-            label: "Pending",
-            icon: "⏳",
-            action: () => setStatusFilter("pending"),
-          },
-          {
-            label: "Completed",
-            icon: "✅",
-            action: () => setStatusFilter("completed"),
-          },
-          {
-            label: "Future Needs",
-            icon: "🔮",
-            action: () => setStatusFilter("future-needs"),
-          },
+          { label: "Add Item", icon: "➕", action: () => router.push("/add-item") },
+          { label: "All Items", icon: "📦", action: () => setStatusFilter("all") },
+          { label: "Pending", icon: "⏳", action: () => setStatusFilter("pending") },
+          { label: "Completed", icon: "✅", action: () => setStatusFilter("completed") },
+          { label: "Future Needs", icon: "🔮", action: () => setStatusFilter("future-needs") },
         ].map((box) => (
           <div
             key={box.label}
             onClick={box.action}
-            className="
-        cursor-pointer bg-[var(--card-bg)]
-        border border-[var(--dropdown-border)]
-        rounded-xl p-6 text-center hover:scale-105 
-        transition shadow-md select-none
-      "
+            className="cursor-pointer bg-[var(--card-bg)] border border-[var(--dropdown-border)] rounded-xl p-6 text-center hover:scale-105 transition shadow-md select-none"
           >
             <div className="text-3xl mb-2">{box.icon}</div>
-            <p className="text-sm font-semibold text-[var(--text-main)]">
-              {box.label}
-            </p>
+            <p className="text-sm font-semibold text-[var(--text-main)]">{box.label}</p>
           </div>
         ))}
       </div>
@@ -242,13 +186,7 @@ export default function DashboardPage() {
         Filtered Items ({filteredItems.length})
       </h2>
 
-      <div
-        className="
-          bg-[var(--card-bg)]
-          p-5 rounded-xl border border-[var(--dropdown-border)]
-          shadow mb-10
-        "
-      >
+      <div className="bg-[var(--card-bg)] p-5 rounded-xl border border-[var(--dropdown-border)] shadow mb-10">
         {filteredItems.length === 0 ? (
           <p className="text-[var(--text-muted)] text-sm">No items found.</p>
         ) : (
@@ -258,27 +196,29 @@ export default function DashboardPage() {
                 key={item.id}
                 className="flex justify-between items-center p-3 rounded-lg bg-black/10 dark:bg-white/10"
               >
-                <div className="flex items-center gap-3">
-                  <span>{item.name}</span>
+                <div className="flex flex-col">
+                  <span className="font-semibold text-[var(--text-main)]">{item.name}</span>
+
+                  {item.description && (
+                    <span className="text-sm text-[var(--text-muted)] mt-0.5">
+                      {item.description}
+                    </span>
+                  )}
                 </div>
 
-                {/* Status badge + action icons on right (Option A) */}
                 <div className="flex items-center gap-3">
                   <span
-                    className={`text-xs px-3 py-1 rounded-full ${
+                    className={`text-xs font-semibold px-5 py-2 rounded-full  ${
                       item.status === "completed"
-                        ? "bg-green-500/20 text-green-400"
+                        ? "bg-green-500/30 text-green-800"
                         : item.status === "future-needs"
-                        ? "bg-blue-500/20 text-blue-400"
-                        : "bg-yellow-500/20 text-yellow-300"
+                        ? "bg-blue-500/30 text-blue-800"
+                        : "bg-yellow-500/30 text-yellow-800"
                     }`}
                   >
-                    {item.status === "future-needs"
-                      ? "Future Needs"
-                      : item.status}
+                    {item.status === "future-needs" ? "Future Needs" : item.status}
                   </span>
 
-                  {/* Edit */}
                   <button
                     onClick={() => goEdit(item.id)}
                     title="Edit"
@@ -287,7 +227,6 @@ export default function DashboardPage() {
                     ✏️
                   </button>
 
-                  {/* Mark Completed (only if not completed) */}
                   {item.status !== "completed" && (
                     <button
                       onClick={() => markCompleted(item.id)}
@@ -298,7 +237,6 @@ export default function DashboardPage() {
                     </button>
                   )}
 
-                  {/* Delete */}
                   <button
                     onClick={() => deleteItem(item.id)}
                     title="Delete"
@@ -313,22 +251,12 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* TODAY'S PENDING TASKS */}
-      <h2 className="text-xl font-bold mb-2 text-[var(--text-main)]">
-        Today’s Pending Items
-      </h2>
+      {/* TODAY'S PENDING ITEMS */}
+      <h2 className="text-xl font-bold mb-2 text-[var(--text-main)]">Today’s Pending Items</h2>
 
-      <div
-        className="
-          bg-[var(--card-bg)]
-          p-5 rounded-xl border border-[var(--dropdown-border)]
-          shadow
-        "
-      >
+      <div className="bg-[var(--card-bg)] p-5 rounded-xl border border-[var(--dropdown-border)] shadow">
         {filteredItems.filter((i) => i.status === "pending").length === 0 ? (
-          <p className="text-[var(--text-muted)] text-sm">
-            No pending tasks 🎉
-          </p>
+          <p className="text-[var(--text-muted)] text-sm">No pending tasks 🎉</p>
         ) : (
           <ul className="space-y-3">
             {filteredItems
@@ -339,7 +267,16 @@ export default function DashboardPage() {
                   key={item.id}
                   className="flex justify-between items-center p-3 rounded-lg bg-black/10 dark:bg-white/10"
                 >
-                  <span>{item.name}</span>
+                  <div className="flex flex-col">
+                    <span className="font-semibold text-[var(--text-main)]">{item.name}</span>
+
+                    {item.description && (
+                      <span className="text-sm text-[var(--text-muted)] mt-0.5">
+                        {item.description}
+                      </span>
+                    )}
+                  </div>
+
                   <div className="flex gap-3">
                     <button
                       onClick={() => {
@@ -352,7 +289,6 @@ export default function DashboardPage() {
                     >
                       ✓
                     </button>
-
                     <button
                       onClick={() => deleteItem(item.id)}
                       className="text-red-400 font-semibold hover:text-red-300"

@@ -9,41 +9,53 @@ export default function AddItemPage() {
 
   const [form, setForm] = useState({
     name: "",
+    description: "",   // 🟡 NEW FIELD
     category: "",
     status: "pending",
   });
 
   const [categories, setCategories] = useState([]);
-  const [newCategory, setNewCategory] = useState("");
+  const [newCategory, setNewCategory] = useState([]);
+  const [user, setUser] = useState(null);
 
-  // Load categories from localStorage
+  // load current user
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem("hm_categories") || "[]");
-
-    const defaultCategories = [
-      "grocery",
-      "kitchen",
-      "bathroom",
-      "household",
-      "future-needs", // new default category
-    ];
-
-    const merged = Array.from(new Set([...defaultCategories, ...saved]));
-
-    setCategories(merged);
-    localStorage.setItem("hm_categories", JSON.stringify(merged));
+    const localSession =
+      typeof window !== "undefined" &&
+      localStorage.getItem("hm_session") === "active";
+    const localUser = localSession
+      ? JSON.parse(localStorage.getItem("hm_user") || "null")
+      : null;
+    setUser(localUser);
   }, []);
 
+  // load categories
+  useEffect(() => {
+    if (!user) return;
+    const emailSafe = user.email.replace(/[@.]/g, "_");
+    const catsKey = `hm_categories_${emailSafe}`;
+    const saved = JSON.parse(localStorage.getItem(catsKey) || "[]");
+    const defaults = ["grocery", "kitchen", "bathroom", "household", "future-needs"];
+    const merged = Array.from(new Set([...defaults, ...saved]));
+    setCategories(merged);
+    localStorage.setItem(catsKey, JSON.stringify(merged));
+  }, [user]);
+
+  // handle input
   function handleChange(e) {
     setForm({ ...form, [e.target.name]: e.target.value });
   }
 
-  // Save item
   function handleSubmit(e) {
     e.preventDefault();
 
     if (!form.name || !form.category) {
-      alert("Please fill all fields");
+      alert("Please fill required fields");
+      return;
+    }
+
+    if (!user) {
+      router.push("/login");
       return;
     }
 
@@ -52,14 +64,16 @@ export default function AddItemPage() {
       ...form,
     };
 
-    const existing = JSON.parse(localStorage.getItem("hm_items") || "[]");
+    const emailSafe = user.email.replace(/[@.]/g, "_");
+    const itemsKey = `hm_items_${emailSafe}`;
+    const existing = JSON.parse(localStorage.getItem(itemsKey) || "[]");
+
     existing.push(newItem);
-    localStorage.setItem("hm_items", JSON.stringify(existing));
+    localStorage.setItem(itemsKey, JSON.stringify(existing));
 
     router.push("/dashboard");
   }
 
-  // Add new custom category
   function addCategory() {
     if (!newCategory.trim()) {
       alert("Enter a category name");
@@ -67,15 +81,16 @@ export default function AddItemPage() {
     }
 
     const formatted = newCategory.toLowerCase().replace(/\s+/g, "-");
+    const emailSafe = user.email.replace(/[@.]/g, "_");
+    const catsKey = `hm_categories_${emailSafe}`;
+    const updated = Array.from(
+      new Set([...JSON.parse(localStorage.getItem(catsKey) || "[]"), formatted])
+    );
 
-    const updated = Array.from(new Set([...categories, formatted]));
-
+    localStorage.setItem(catsKey, JSON.stringify(updated));
     setCategories(updated);
-    localStorage.setItem("hm_categories", JSON.stringify(updated));
-
     setForm({ ...form, category: formatted });
     setNewCategory("");
-
     alert("Category added successfully!");
   }
 
@@ -104,7 +119,8 @@ export default function AddItemPage() {
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
-          {/* Item Name */}
+          
+          {/* NAME */}
           <InputField
             label="Item Name"
             type="text"
@@ -114,7 +130,16 @@ export default function AddItemPage() {
             required
           />
 
-          {/* Category Selection */}
+          {/* 🟡 DESCRIPTION FIELD */}
+          <InputField
+            label="Description"
+            type="text"
+            name="description"
+            placeholder="Optional details..."
+            onChange={handleChange}
+          />
+
+          {/* CATEGORY */}
           <div>
             <label className="text-sm text-[var(--text-main)] font-medium">
               Category
@@ -134,7 +159,7 @@ export default function AddItemPage() {
             </select>
           </div>
 
-          {/* Add Category Field */}
+          {/* ADD NEW CATEGORY */}
           <div className="mt-3">
             <InputField
               label="Add New Category"
@@ -144,7 +169,6 @@ export default function AddItemPage() {
               value={newCategory}
               onChange={(e) => setNewCategory(e.target.value)}
             />
-
             <button
               type="button"
               onClick={addCategory}
@@ -154,7 +178,7 @@ export default function AddItemPage() {
             </button>
           </div>
 
-          {/* Status */}
+          {/* STATUS */}
           <div>
             <label className="text-sm text-[var(--text-main)] font-medium">
               Status
@@ -171,7 +195,7 @@ export default function AddItemPage() {
             </select>
           </div>
 
-          {/* Buttons */}
+          {/* BUTTONS */}
           <div className="flex flex-col sm:flex-row gap-3 mt-4">
             <button
               type="button"
@@ -185,6 +209,7 @@ export default function AddItemPage() {
               Save Item
             </button>
           </div>
+
         </form>
       </div>
     </div>

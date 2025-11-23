@@ -10,10 +10,18 @@ export default function LoginPage() {
   const [form, setForm] = useState({ email: "", password: "" });
   const { data: session } = useSession();
 
-  // If Google login is successful → Save user to localStorage
+  // If Google login is successful → Save user to localStorage + set session
   useEffect(() => {
     if (session?.user) {
+      // save per-user record and pointer
       saveGoogleUser(session);
+
+      // mark local session active for parity
+      if (typeof window !== "undefined") {
+        localStorage.setItem("hm_session", "active");
+      }
+
+      // redirect to dashboard
       window.location.href = "/dashboard";
     }
   }, [session]);
@@ -34,11 +42,17 @@ export default function LoginPage() {
 
     const parsed = JSON.parse(savedUser);
 
+    // simple credential check against stored user
     if (
       parsed.email === form.email &&
       parsed.password === form.password
     ) {
+      // set session active flag
       localStorage.setItem("hm_session", "active");
+
+      // ensure hm_user reflects current user (overwrite)
+      localStorage.setItem("hm_user", JSON.stringify(parsed));
+
       window.location.href = "/dashboard";
     } else {
       alert("Incorrect email or password.");
