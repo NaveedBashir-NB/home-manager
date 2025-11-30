@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import InputField from "../../components/InputField";
+import InputField from "../components/InputField";
 
 export default function CategoriesPage() {
   const { data: session, status } = useSession();
