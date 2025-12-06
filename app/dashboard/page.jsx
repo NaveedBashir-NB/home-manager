@@ -26,27 +26,19 @@ export default function DashboardPage() {
     setGreeting(h < 12 ? "Good Morning" : h < 17 ? "Good Afternoon" : "Good Evening");
   }, []);
 
-  // helper: get active user object
-  const getActiveUser = () => {
-    if (session?.user) return session.user;
-    const localSession = typeof window !== "undefined" && localStorage.getItem("hm_session") === "active";
-    return localSession ? JSON.parse(localStorage.getItem("hm_user") || "null") : null;
-  };
-
-  // load user, items, categories
+  // load user + fetch items + fetch categories
   useEffect(() => {
     if (status === "loading") return;
 
-    const activeUser = getActiveUser();
-    if (!activeUser) {
+    if (!session?.user) {
       router.push("/login");
       return;
     }
-    setUser(activeUser);
 
-    const email = encodeURIComponent(activeUser.email);
+    setUser(session.user);
+    const email = encodeURIComponent(session.user.email);
 
-    // fetch items
+    // fetch items from MongoDB
     fetch(`/api/items?email=${email}`)
       .then((res) => res.json())
       .then((data) => {
@@ -58,16 +50,18 @@ export default function DashboardPage() {
         setFilteredItems([]);
       });
 
-    // fetch categories
+    // fetch categories from MongoDB
     fetch(`/api/categories?email=${email}`)
       .then((res) => res.json())
       .then((cats) => {
-        setCategories(cats || ["grocery","kitchen","bathroom","household","future-needs"]);
+        setCategories(
+          cats || ["grocery", "kitchen", "bathroom", "household", "future-needs"]
+        );
       })
       .catch(() => {
-        setCategories(["grocery","kitchen","bathroom","household","future-needs"]);
+        setCategories(["grocery", "kitchen", "bathroom", "household", "future-needs"]);
       });
-  }, [session, status, router]);
+  }, [session, status]);
 
   // Filter + search logic
   useEffect(() => {
@@ -88,7 +82,6 @@ export default function DashboardPage() {
     setFilteredItems(data);
   }, [search, categoryFilter, statusFilter, items]);
 
-  // Helpers to update state after server call
   const refreshItems = async () => {
     if (!user?.email) return;
     const email = encodeURIComponent(user.email);
@@ -97,11 +90,11 @@ export default function DashboardPage() {
     setItems(data || []);
   };
 
-  // mark completed via API (PUT)
+  // mark completed (PUT → MongoDB)
   const markCompleted = async (id) => {
     if (!user?.email) return;
-    const email = user.email;
-    const existing = items.find(i => i.id === id);
+
+    const existing = items.find((i) => i._id === id || i.id === id);
     if (!existing) return;
 
     const updatedItem = { ...existing, status: "completed" };
@@ -109,19 +102,25 @@ export default function DashboardPage() {
     await fetch(`/api/items/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, item: updatedItem }),
+      body: JSON.stringify({
+        email: user.email,
+        item: updatedItem,
+      }),
     });
 
     await refreshItems();
   };
 
-  // delete via API
+  // delete item (DELETE → MongoDB)
   const deleteItem = async (id) => {
     if (!confirm("Are you sure you want to delete this item?")) return;
     if (!user?.email) return;
+
     const email = encodeURIComponent(user.email);
 
-    await fetch(`/api/items/${id}?email=${email}`, { method: "DELETE" });
+    await fetch(`/api/items/${id}?email=${email}`, {
+      method: "DELETE",
+    });
 
     await refreshItems();
   };
@@ -134,15 +133,18 @@ export default function DashboardPage() {
 
   return (
     <div className="px-6 py-10 max-w-6xl mx-auto">
+
       {/* GREETING */}
       <div className="mb-10">
         <h1 className="text-3xl sm:text-4xl font-bold text-[var(--text-main)]">
           {greeting}, {user.name.split(" ")[0]} 👋
         </h1>
-        <p className="text-[var(--text-muted)] mt-1">Manage your daily household items easily.</p>
+        <p className="text-[var(--text-muted)] mt-1">
+          Manage your daily household items easily.
+        </p>
       </div>
 
-      {/* SEARCH + FILTERS */}
+      {/* SEARCH + FILTER UI (UNCHANGED) */}
       <div className="bg-[var(--card-bg)] border border-[var(--dropdown-border)] rounded-xl p-5 mb-10 shadow-lg backdrop-blur-xl">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <input
@@ -179,7 +181,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* QUICK ACTIONS */}
+      {/* QUICK ACTIONS (UNCHANGED) */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-10">
         {[
           { label: "Add Item", icon: "➕", action: () => router.push("/add-item") },
@@ -199,8 +201,10 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      {/* FILTERED RESULTS LIST */}
-      <h2 className="text-xl font-bold mb-3 text-[var(--text-main)]">Filtered Items ({filteredItems.length})</h2>
+      {/* FILTERED RESULTS LIST (UNCHANGED) */}
+      <h2 className="text-xl font-bold mb-3 text-[var(--text-main)]">
+        Filtered Items ({filteredItems.length})
+      </h2>
 
       <div className="bg-[var(--card-bg)] p-5 rounded-xl border border-[var(--dropdown-border)] shadow mb-10">
         {filteredItems.length === 0 ? (
@@ -208,48 +212,59 @@ export default function DashboardPage() {
         ) : (
           <ul className="space-y-3">
             {filteredItems.slice(0, 10).map((item) => (
-              <li key={item.id} className="flex justify-between items-center p-3 rounded-lg bg-black/10 dark:bg-white/10">
+              <li
+                key={item._id || item.id}
+                className="flex justify-between items-center p-3 rounded-lg bg-black/10 dark:bg-white/10"
+              >
                 <div className="flex flex-col">
-                  <span className="font-semibold text-[var(--text-main)]">{item.name}</span>
-                  {item.description && <span className="text-sm text-[var(--text-muted)] mt-0.5">{item.description}</span>}
+                  <span className="font-semibold text-[var(--text-main)]">
+                    {item.name}
+                  </span>
+                  {item.description && (
+                    <span className="text-sm text-[var(--text-muted)] mt-0.5">
+                      {item.description}
+                    </span>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <span className={`text-xs font-semibold px-5 py-2 rounded-full  ${item.status === "completed" ? "bg-green-500/30 text-green-800" : item.status === "future-needs" ? "bg-blue-500/30 text-blue-800" : "bg-yellow-500/30 text-yellow-800"}`}>
+                  <span
+                    className={`text-xs font-semibold px-5 py-2 rounded-full ${
+                      item.status === "completed"
+                        ? "bg-green-500/30 text-green-800"
+                        : item.status === "future-needs"
+                        ? "bg-blue-500/30 text-blue-800"
+                        : "bg-yellow-500/30 text-yellow-800"
+                    }`}
+                  >
                     {item.status === "future-needs" ? "Future Needs" : item.status}
                   </span>
 
-                  <button onClick={() => goEdit(item.id)} title="Edit" className="text-[var(--text-main)] hover:text-yellow-400 transition">✏️</button>
+                  <button
+                    onClick={() => goEdit(item._id || item.id)}
+                    title="Edit"
+                    className="text-[var(--text-main)] hover:text-yellow-400 transition"
+                  >
+                    ✏️
+                  </button>
 
                   {item.status !== "completed" && (
-                    <button onClick={() => markCompleted(item.id)} title="Mark completed" className="text-green-400 hover:text-green-300 transition">✔</button>
+                    <button
+                      onClick={() => markCompleted(item._id || item.id)}
+                      title="Mark completed"
+                      className="text-green-400 hover:text-green-300 transition"
+                    >
+                      ✔
+                    </button>
                   )}
 
-                  <button onClick={() => deleteItem(item.id)} title="Delete" className="text-red-400 hover:text-red-300 transition">🗑️</button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
-      {/* TODAY'S PENDING TASKS */}
-      <h2 className="text-xl font-bold mb-2 text-[var(--text-main)]">Today’s Pending Items</h2>
-      <div className="bg-[var(--card-bg)] p-5 rounded-xl border border-[var(--dropdown-border)] shadow">
-        {filteredItems.filter((i) => i.status === "pending").length === 0 ? (
-          <p className="text-[var(--text-muted)] text-sm">No pending tasks 🎉</p>
-        ) : (
-          <ul className="space-y-3">
-            {filteredItems.filter((i) => i.status === "pending").slice(0, 5).map((item) => (
-              <li key={item.id} className="flex justify-between items-center p-3 rounded-lg bg-black/10 dark:bg-white/10">
-                <div className="flex flex-col">
-                  <span className="font-semibold text-[var(--text-main)]">{item.name}</span>
-                  {item.description && <span className="text-sm text-[var(--text-muted)] mt-0.5">{item.description}</span>}
-                </div>
-
-                <div className="flex gap-3">
-                  <button onClick={async () => { await markCompleted(item.id); }} className="text-green-400 font-semibold hover:text-green-300">✓</button>
-                  <button onClick={() => deleteItem(item.id)} className="text-red-400 font-semibold hover:text-red-300">🗑</button>
+                  <button
+                    onClick={() => deleteItem(item._id || item.id)}
+                    title="Delete"
+                    className="text-red-400 hover:text-red-300 transition"
+                  >
+                    🗑️
+                  </button>
                 </div>
               </li>
             ))}

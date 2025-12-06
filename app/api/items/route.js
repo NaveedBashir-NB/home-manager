@@ -1,45 +1,18 @@
-// /app/api/items/route.js
-import { readJSON, writeJSON } from "@/lib/db";
-import { NextResponse } from "next/server";
-
-export async function GET(req) {
-  const email = req.nextUrl.searchParams.get("email");
-  const itemsList = readJSON("items.json");
-
-  const user = itemsList.find(u => u.userEmail === email);
-  return NextResponse.json(user ? user.items : []);
-}
+import { connectDB } from "@/lib/mongodb";
+import Item from "@/models/Item";
 
 export async function POST(req) {
-  const { email, item } = await req.json();
+  await connectDB();
+  const body = await req.json();
+  await Item.create(body);
+  return Response.json({ success: true });
+}
 
-  if (!email || !item) {
-    return NextResponse.json(
-      { success: false, message: "Missing email or item" },
-      { status: 400 }
-    );
-  }
+export async function GET(req) {
+  await connectDB();
 
-  const itemsList = readJSON("items.json");
-  let user = itemsList.find(u => u.userEmail === email);
+  const email = req.nextUrl.searchParams.get("email");
+  const items = await Item.find({ userEmail: email }).sort({ createdAt: -1 });
 
-  // Auto-create user (same behavior as categories)
-  if (!user) {
-    user = { userEmail: email, items: [] };
-    itemsList.push(user);
-  }
-
-  // Normalize category
-  item.category = item.category
-    ?.toLowerCase()
-    ?.trim()
-    ?.replace(/\s+/g, "-") || "";
-
-  // Ensure unique ID
-  item.id = item.id || Date.now().toString();
-
-  user.items.push(item);
-  writeJSON("items.json", itemsList);
-
-  return NextResponse.json({ success: true, item });
+  return Response.json(items);
 }
