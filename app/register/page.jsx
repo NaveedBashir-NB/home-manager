@@ -70,7 +70,7 @@ export default function RegisterPage() {
       {/* Background */}
       <div
         className="absolute inset-0 bg-cover bg-center transition-transform duration-1000"
-        style={{ backgroundImage: "url('/bg-image.jpg')" }}
+        style={{ backgroundImage: "url('/bg-image.png')" }}
       ></div>
 
       {/* Overlay */}
