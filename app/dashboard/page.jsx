@@ -85,13 +85,13 @@ export default function DashboardPage() {
 
 const markCompleted = async (item) => {
   try {
-    if (!session?.user) return;
-
-    // Prepare payload with only fields you want to update
     const payload = {
       id: item._id,
       userId: session.user.email,
-      status: "completed", // mark as completed
+      name: item.name,
+      description: item.description,
+      category: item.category,
+      status: "completed",
     };
 
     const res = await fetch("/api/items", {
@@ -108,13 +108,12 @@ const markCompleted = async (item) => {
 
     const updatedItem = await res.json();
 
-    // Update the dashboard state immediately without page refresh
     setItems((prev) =>
       prev.map((i) => (i._id === updatedItem._id ? updatedItem : i))
     );
   } catch (err) {
     console.error(err);
-    alert("Something went wrong while marking the item as completed.");
+    alert("Something went wrong");
   }
 };
 
@@ -285,7 +284,7 @@ const markCompleted = async (item) => {
 
                     {item.status !== "completed" && (
                       <button
-                        onClick={() => markCompleted(item._id)}
+                        onClick={() => markCompleted(item)}
                         title="Mark completed"
                         className="text-green-400 hover:text-green-300 transition"
                       >

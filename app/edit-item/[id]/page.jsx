@@ -9,7 +9,7 @@ export default function EditItemPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const params = useParams();
-const itemId = params.id;
+  const itemId = params.id;
 
   const [form, setForm] = useState({
     name: "",
@@ -30,48 +30,47 @@ const itemId = params.id;
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-  if (status === "loading") return; // wait for session
+    if (status === "loading") return; // wait for session
 
-  if (!session?.user) {
-    router.push("/login");
-    return;
-  }
+    if (!session?.user) {
+      router.push("/login");
+      return;
+    }
 
-  if (!itemId) {
-    alert("No item selected to edit");
-    router.push("/dashboard");
-    return;
-  }
+    if (!itemId) {
+      alert("No item selected to edit");
+      router.push("/dashboard");
+      return;
+    }
 
-  // fetch the item
-  fetchItem();
-}, [session, status, itemId]);
+    // fetch the item
+    fetchItem();
+  }, [session, status, itemId]);
 
-const fetchItem = async () => {
-  try {
-    setLoading(true);
-    const email = encodeURIComponent(session.user.email);
-    const res = await fetch(`/api/items?email=${email}`);
-    const data = await res.json();
+  const fetchItem = async () => {
+    try {
+      setLoading(true);
+      const email = encodeURIComponent(session.user.email);
+      const res = await fetch(`/api/items?email=${email}`);
+      const data = await res.json();
 
-    const item = data.find((i) => i._id === itemId);
-    if (!item) throw new Error("Item not found");
+      const item = data.find((i) => i._id === itemId);
+      if (!item) throw new Error("Item not found");
 
-    setForm({
-      name: item.name || "",
-      description: item.description || "",
-      category: item.category || "",
-      status: item.status || "pending",
-    });
-  } catch (err) {
-    console.error(err);
-    alert(err.message);
-    router.push("/dashboard");
-  } finally {
-    setLoading(false); // **important**: set loading to false no matter what
-  }
-};
-
+      setForm({
+        name: item.name || "",
+        description: item.description || "",
+        category: item.category || "",
+        status: item.status || "pending",
+      });
+    } catch (err) {
+      console.error(err);
+      alert(err.message);
+      router.push("/dashboard");
+    } finally {
+      setLoading(false); // **important**: set loading to false no matter what
+    }
+  };
 
   const handleChange = (e) =>
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -151,7 +150,9 @@ const fetchItem = async () => {
               <option value="">Select category</option>
               {categories.map((cat, i) => (
                 <option key={i} value={cat}>
-                  {cat.replace("-", " ").replace(/\b\w/g, (l) => l.toUpperCase())}
+                  {cat
+                    .replace("-", " ")
+                    .replace(/\b\w/g, (l) => l.toUpperCase())}
                 </option>
               ))}
             </select>
