@@ -24,7 +24,7 @@ export async function POST(req) {
 
     const item = await Item.create({
       name: body.name,
-      description: body.description || "",
+      description: body.description || " ",
       category: body.category,
       status: body.status || "pending",
       userId: body.userId,

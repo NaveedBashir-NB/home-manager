@@ -25,7 +25,6 @@ export default function AddItemPage() {
     "Medical & Healthcare",
     "Misc Items",
   ]);
-  const [newCategory, setNewCategory] = useState("");
 
   // Wait for session to load
   useEffect(() => {
