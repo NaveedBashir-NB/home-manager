@@ -83,24 +83,40 @@ export default function DashboardPage() {
     setItems(data || []);
   };
 
-  async function markCompleted(item) {
+const markCompleted = async (item) => {
+  try {
+    if (!session?.user) return;
+
+    // Prepare payload with only fields you want to update
+    const payload = {
+      id: item._id,
+      userId: session.user.email,
+      status: "completed", // mark as completed
+    };
+
     const res = await fetch("/api/items", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id: item._id,
-        userId: session.user.email,
-        name: item.name,
-        description: item.description,
-        category: item.category,
-        status: "completed",
-      }),
+      body: JSON.stringify(payload),
     });
 
-    const data = await res.json();
-    if (res.ok) loadItems();
-    else alert("Failed: " + data.error);
+    if (!res.ok) {
+      const err = await res.json();
+      alert("Failed: " + err.error);
+      return;
+    }
+
+    const updatedItem = await res.json();
+
+    // Update the dashboard state immediately without page refresh
+    setItems((prev) =>
+      prev.map((i) => (i._id === updatedItem._id ? updatedItem : i))
+    );
+  } catch (err) {
+    console.error(err);
+    alert("Something went wrong while marking the item as completed.");
   }
+};
 
   async function handleDelete(itemId) {
     if (!confirm("Are you sure you want to delete this item?")) return;

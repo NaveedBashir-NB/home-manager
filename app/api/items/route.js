@@ -40,19 +40,23 @@ export async function POST(req) {
 export async function PUT(req) {
   try {
     await connectDB();
+
     const body = await req.json();
 
     if (!body.id || !body.userId) {
-      return Response.json({ error: "Missing id or userId" }, { status: 400 });
+      return Response.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
     }
 
     const updated = await Item.findOneAndUpdate(
       { _id: body.id, userId: body.userId },
       {
         name: body.name,
-        description: body.description || "",
+        description: body.description,
         category: body.category,
-        status: body.status || "pending",
+        status: body.status,
       },
       { new: true }
     );
@@ -63,10 +67,11 @@ export async function PUT(req) {
 
     return Response.json(updated);
   } catch (error) {
-    console.error("PUT /api/items error:", error);
+    console.error("PUT error:", error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 }
+
 
 export async function DELETE(req) {
   try {

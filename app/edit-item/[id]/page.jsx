@@ -2,14 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import InputField from "../../components/InputField";
 
 export default function EditItemPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const itemId = searchParams.get("id");
+  const params = useParams();
+const itemId = params.id;
 
   const [form, setForm] = useState({
     name: "",
@@ -27,56 +27,82 @@ export default function EditItemPage() {
     "Misc Items",
   ]);
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (status === "loading") return;
-    if (!session?.user) router.push("/login");
-    else if (itemId) fetchItem();
-  }, [session, status, itemId]);
+  if (status === "loading") return; // wait for session
 
-  const fetchItem = async () => {
-    try {
-      const res = await fetch(`/api/items?email=${session.user.email}`);
-      const data = await res.json();
-      const item = data.find((i) => i._id === itemId);
-      if (!item) throw new Error("Item not found");
-      setForm({
-        name: item.name,
-        description: item.description,
-        category: item.category,
-        status: item.status,
-      });
-      setLoading(false);
-    } catch (err) {
-      console.error(err);
-      alert(err.message);
-      router.push("/dashboard");
-    }
-  };
+  if (!session?.user) {
+    router.push("/login");
+    return;
+  }
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  if (!itemId) {
+    alert("No item selected to edit");
+    router.push("/dashboard");
+    return;
+  }
+
+  // fetch the item
+  fetchItem();
+}, [session, status, itemId]);
+
+const fetchItem = async () => {
+  try {
+    setLoading(true);
+    const email = encodeURIComponent(session.user.email);
+    const res = await fetch(`/api/items?email=${email}`);
+    const data = await res.json();
+
+    const item = data.find((i) => i._id === itemId);
+    if (!item) throw new Error("Item not found");
+
+    setForm({
+      name: item.name || "",
+      description: item.description || "",
+      category: item.category || "",
+      status: item.status || "pending",
+    });
+  } catch (err) {
+    console.error(err);
+    alert(err.message);
+    router.push("/dashboard");
+  } finally {
+    setLoading(false); // **important**: set loading to false no matter what
+  }
+};
+
+
+  const handleChange = (e) =>
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!form.name || !form.category) return alert("Fill required fields");
 
-    const res = await fetch("/api/items", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id: itemId,
-        userId: session.user.email,
-        ...form,
-      }),
-    });
+    try {
+      const res = await fetch("/api/items", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: itemId,
+          userId: session.user.email,
+          ...form,
+        }),
+      });
 
-    const data = await res.json();
-    if (res.ok) {
-      alert("Item updated successfully");
-      router.push("/dashboard");
-    } else {
-      alert("Failed: " + data.error);
+      const data = await res.json();
+
+      if (res.ok) {
+        alert("Item updated successfully");
+        router.push("/dashboard");
+      } else {
+        alert("Failed: " + data.error);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong while updating the item.");
     }
   };
 
@@ -113,6 +139,7 @@ export default function EditItemPage() {
             value={form.description}
             onChange={handleChange}
           />
+
           <div>
             <label className="text-sm font-medium">Category</label>
             <select
@@ -129,6 +156,7 @@ export default function EditItemPage() {
               ))}
             </select>
           </div>
+
           <div>
             <label className="text-sm font-medium">Status</label>
             <select
