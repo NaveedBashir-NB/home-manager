@@ -1,9 +1,9 @@
 import { connectDB } from "@/lib/mongodb";
-import Category from "@/models/Category";
 
 export async function GET() {
   await connectDB();
 
+  // Static categories — no model needed
   const categories = [
     "Food & Groceries",
     "Household Items / Supplies",
@@ -14,8 +14,5 @@ export async function GET() {
     "Misc Items"
   ];
 
-  await Category.deleteMany({});
-  await Category.insertMany(categories.map((c) => ({ name: c })));
-
-  return new Response("Categories seeded!");
+  return new Response(JSON.stringify(categories), { status: 200 });
 }
