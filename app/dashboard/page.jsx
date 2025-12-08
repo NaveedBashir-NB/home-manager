@@ -271,7 +271,8 @@ const markCompleted = async (item) => {
                     >
                       {item.status === "future-needs"
                         ? "Future Needs"
-                        : item.status}
+                        : item.status==="pending" ? "Pending" : "Completed"
+                        }
                     </span>
 
                     <button
