@@ -259,7 +259,7 @@ export default function DashboardPage() {
                     )}
                   </div>
 
-                  <div className="flex justify-between py-1 gap-1 sm:w-[40%]">
+                  <div className="flex justify-between py-1 gap-1 sm:w-1/2 sm:max-w-75">
                     <span
                       className={`text-xs sm:text-sm sm:font-bold font-semibold px-3 sm:px-5 py-1 sm:py-2 rounded-sm my-auto ${
                         item.status === "completed"
