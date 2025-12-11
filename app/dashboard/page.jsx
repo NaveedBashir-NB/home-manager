@@ -83,39 +83,39 @@ export default function DashboardPage() {
     setItems(data || []);
   };
 
-const markCompleted = async (item) => {
-  try {
-    const payload = {
-      id: item._id,
-      userId: session.user.email,
-      name: item.name,
-      description: item.description,
-      category: item.category,
-      status: "completed",
-    };
+  const markCompleted = async (item) => {
+    try {
+      const payload = {
+        id: item._id,
+        userId: session.user.email,
+        name: item.name,
+        description: item.description,
+        category: item.category,
+        status: "completed",
+      };
 
-    const res = await fetch("/api/items", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+      const res = await fetch("/api/items", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-    if (!res.ok) {
-      const err = await res.json();
-      alert("Failed: " + err.error);
-      return;
+      if (!res.ok) {
+        const err = await res.json();
+        alert("Failed: " + err.error);
+        return;
+      }
+
+      const updatedItem = await res.json();
+
+      setItems((prev) =>
+        prev.map((i) => (i._id === updatedItem._id ? updatedItem : i))
+      );
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong");
     }
-
-    const updatedItem = await res.json();
-
-    setItems((prev) =>
-      prev.map((i) => (i._id === updatedItem._id ? updatedItem : i))
-    );
-  } catch (err) {
-    console.error(err);
-    alert("Something went wrong");
-  }
-};
+  };
 
   async function handleDelete(itemId) {
     if (!confirm("Are you sure you want to delete this item?")) return;
@@ -246,7 +246,7 @@ const markCompleted = async (item) => {
               filteredItems.slice(0, 10).map((item) => (
                 <li
                   key={item._id}
-                  className="flex justify-between items-center p-3 rounded-lg bg-black/10 dark:bg-white/10"
+                  className="flex flex-col sm:flex-row justify-between px-3 py-1 space-y-2 sm:p-3 rounded-lg bg-black/10 dark:bg-white/10"
                 >
                   <div className="flex flex-col">
                     <span className="font-semibold text-[var(--text-main)]">
@@ -259,9 +259,9 @@ const markCompleted = async (item) => {
                     )}
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex justify-between py-1 gap-1 sm:w-[40%]">
                     <span
-                      className={`text-xs font-semibold px-5 py-2 rounded-full ${
+                      className={`text-xs sm:text-sm sm:font-bold font-semibold px-3 sm:px-5 py-1 sm:py-2 rounded-sm my-auto ${
                         item.status === "completed"
                           ? "bg-green-500/30 text-green-800"
                           : item.status === "future-needs"
@@ -271,35 +271,37 @@ const markCompleted = async (item) => {
                     >
                       {item.status === "future-needs"
                         ? "Future Needs"
-                        : item.status==="pending" ? "Pending" : "Completed"
-                        }
+                        : item.status === "pending"
+                        ? "Pending"
+                        : "Completed"}
                     </span>
 
-                    <button
-                      onClick={() => goEdit(item._id)}
-                      title="Edit"
-                      className="text-[var(--text-main)] hover:text-yellow-400 transition"
-                    >
-                      ✏️
-                    </button>
-
-                    {item.status !== "completed" && (
+                    <div className="flex w-2/5 max-w-30 justify-between">
+                      {" "}
                       <button
-                        onClick={() => markCompleted(item)}
-                        title="Mark completed"
-                        className="text-green-400 hover:text-green-300 transition"
+                        onClick={() => goEdit(item._id)}
+                        title="Edit"
+                        className="text-[var(--text-main)] hover:text-yellow-400 transition"
                       >
-                        ✔
+                        ✏️
                       </button>
-                    )}
-
-                    <button
-                      onClick={() => handleDelete(item._id)}
-                      title="Delete"
-                      className="text-red-400 hover:text-red-300 transition"
-                    >
-                      🗑️
-                    </button>
+                      {item.status !== "completed" && (
+                        <button
+                          onClick={() => markCompleted(item)}
+                          title="Mark completed"
+                          className="text-green-400 hover:text-green-300 transition"
+                        >
+                          ✔
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleDelete(item._id)}
+                        title="Delete"
+                        className="text-red-400 hover:text-red-300 transition"
+                      >
+                        🗑️
+                      </button>
+                    </div>
                   </div>
                 </li>
               ))}
