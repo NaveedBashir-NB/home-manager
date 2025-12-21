@@ -81,7 +81,7 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="fixed top-0 left-0 w-full bg-[var(--bg-nav)] backdrop-blur-md z-50 shadow-lg transition">
+    <nav className="fixed top-0 left-0 w-full bg-white dark:bg-gray-400 z-50 shadow-lg transition">
       <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
 
         {/* Logo */}
@@ -94,7 +94,7 @@ export default function Navbar() {
           {/* Theme Button */}
           <button
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="p-2 rounded-full w-10 h-10 border border-[var(--text-main)] hover:bg-[var(--text-main)] hover:text-[#facc15] transition"
+            className="btn-primary p-2 rounded-full w-10 h-10 hover:text-[#facc15] transition"
           >
             {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
           </button>
@@ -103,8 +103,8 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-6">
             {!loggedInUser ? (
               <>
-                <Link href="/login" className="btn-theme">Login</Link>
-                <Link href="/register" className="btn-theme">Register</Link>
+                <Link href="/login" className="btn-primary">Login</Link>
+                <Link href="/register" className="btn-primary">Register</Link>
               </>
             ) : (
               <>
@@ -135,11 +135,11 @@ export default function Navbar() {
                       </div>
                     </div>
 
-                    <Link href="/dashboard" className="btn-theme w-full mt-4 block text-center">
+                    <Link href="/dashboard" className="btn-primary w-full mt-4 block text-center">
                       Dashboard
                     </Link>
 
-                    <button onClick={handleLogout} className="btn-theme w-full mt-3">
+                    <button onClick={handleLogout} className="btn-primary w-full mt-3">
                       {loggingOut ? "Logging out..." : "Logout"}
                     </button>
                   </div>
@@ -164,8 +164,8 @@ export default function Navbar() {
         <div className="md:hidden bg-[var(--bg-nav)] backdrop-blur-md px-6 pb-4 flex flex-col gap-4 animate-fadeIn">
           {!loggedInUser ? (
             <>
-              <Link href="/login" className="btn-theme">Login</Link>
-              <Link href="/register" className="btn-theme">Register</Link>
+              <Link href="/login" className="btn-primary">Login</Link>
+              <Link href="/register" className="btn-primary">Register</Link>
             </>
           ) : (
             <>
@@ -183,11 +183,11 @@ export default function Navbar() {
                 </div>
               </div>
 
-              <Link href="/dashboard" className="btn-theme w-full text-center mt-2">
+              <Link href="/dashboard" className="btn-primary w-full text-center mt-2">
                 Dashboard
               </Link>
 
-              <button onClick={handleLogout} className="btn-theme w-full mt-3">
+              <button onClick={handleLogout} className="btn-primary w-full mt-3">
                 {loggingOut ? "Logging out..." : "Logout"}
               </button>
             </>
