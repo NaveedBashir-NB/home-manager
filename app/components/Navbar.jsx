@@ -81,12 +81,12 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="fixed top-0 left-0 w-full bg-white dark:bg-gray-400 z-50 shadow-lg transition">
+    <nav className="fixed top-0 left-0 w-full h-20 z-(--z-fixed) shadow-(--shadow-lg) transition-all bg-accent border-b-1  border-primary-dark">
       <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
 
         {/* Logo */}
-        <Link href="/" className="text-2xl font-bold tracking-wide text-[var(--text-main)]">
-          Home<span className="text-yellow-400">Manager</span>
+        <Link href="/" className="text-2xl font-bold tracking-wide text-secondary no-underline transition-all duration-500">
+          Home<span className="text-primary">Manager</span>
         </Link>
 
         <div className="flex gap-5">
@@ -94,52 +94,52 @@ export default function Navbar() {
           {/* Theme Button */}
           <button
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="btn-primary p-2 rounded-full w-10 h-10 hover:text-[#facc15] transition"
+            className="btn btn-outline p-2 rounded-full w-10 h-10 transition"
           >
-            {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+            {theme === "dark" ? <Sun size={22} /> : <Moon size={22} />}
           </button>
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center gap-6">
             {!loggedInUser ? (
               <>
-                <Link href="/login" className="btn-primary">Login</Link>
-                <Link href="/register" className="btn-primary">Register</Link>
+                <Link href="/login" className="btn btn-primary">Login</Link>
+                <Link href="/register" className="btn btn-primary">Register</Link>
               </>
             ) : (
               <>
                 {/* Profile Icon */}
                 <button
                   onClick={() => setProfileOpen(!profileOpen)}
-                  className="w-11 h-11 rounded-full bg-yellow-400 flex items-center justify-center font-bold text-black shadow hover:opacity-90 transition cursor-pointer"
+                  className="w-11 h-11 rounded-full bg-primary flex items-center justify-center font-bold text-secondary shadow hover:opacity-90 transition cursor-pointer"
                 >
                   {profileOpen ? <X size={22} /> : initials}
                 </button>
 
                 {/* Dropdown */}
                 {profileOpen && (
-                  <div className="absolute top-20 right-10 w-64 rounded-xl shadow-xl p-4 bg-[var(--dropdown-bg)] border border-[var(--dropdown-border)] animate-fadeIn transition">
+                  <div className="absolute top-20 right-10 w-68 rounded-xl shadow-xl p-4 bg-accent border border-primary-dark animate-fadeIn transition">
                     
                     {/* User Info */}
-                    <div className="flex items-center gap-3 pb-4 border-b border-[var(--dropdown-border)]">
-                      <div className="w-10 h-10 rounded-full bg-yellow-400 text-black flex items-center justify-center font-bold">
+                    <div className="flex items-center gap-3 pb-5 border-b border-primary-dark">
+                      <div className="w-10 h-10 rounded-full bg-primary text-secondary flex items-center justify-center font-bold">
                         {initials}
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-[var(--text-main)]">
+                        <p className="text-sm font-semibold text-secondary my-1">
                           {loggedInUser.name}
                         </p>
-                        <p className="text-xs text-[var(--text-muted)]">
+                        <p className="text-xs text-secondary-light my-1">
                           {loggedInUser.email}
                         </p>
                       </div>
                     </div>
 
-                    <Link href="/dashboard" className="btn-primary w-full mt-4 block text-center">
+                    <Link href="/dashboard" className="btn btn-primary w-full mt-4 block text-center">
                       Dashboard
                     </Link>
 
-                    <button onClick={handleLogout} className="btn-primary w-full mt-3">
+                    <button onClick={handleLogout} className="btn btn-primary w-full mt-3">
                       {loggingOut ? "Logging out..." : "Logout"}
                     </button>
                   </div>
@@ -150,7 +150,7 @@ export default function Navbar() {
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden text-[var(--text-main)]"
+            className="md:hidden text-primary-dark"
             onClick={() => setMobileOpen(!mobileOpen)}
           >
             {mobileOpen ? <X size={32} /> : <Menu size={32} />}
@@ -161,33 +161,33 @@ export default function Navbar() {
 
       {/* Mobile Dropdown */}
       {mobileOpen && (
-        <div className="md:hidden bg-[var(--bg-nav)] backdrop-blur-md px-6 pb-4 flex flex-col gap-4 animate-fadeIn">
+        <div className="md:hidden bg-accent backdrop-blur-md px-6 pb-4 flex flex-col gap-4 animate-fadeIn">
           {!loggedInUser ? (
             <>
-              <Link href="/login" className="btn-primary">Login</Link>
-              <Link href="/register" className="btn-primary">Register</Link>
+              <Link href="/login" className="btn btn-primary">Login</Link>
+              <Link href="/register" className="btn btn-primary">Register</Link>
             </>
           ) : (
             <>
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-yellow-400 text-black flex items-center justify-center font-bold">
+              <div className="flex items-center gap-3 py-5">
+                <div className="w-12 h-12 rounded-full bg-primary text-secondary flex items-center justify-center font-bold">
                   {initials}
                 </div>
                 <div>
-                  <p className="font-semibold text-[var(--text-main)]">
+                  <p className="font-semibold text-secondary my-1">
                     {loggedInUser.name}
                   </p>
-                  <p className="text-sm text-[var(--text-muted)]">
+                  <p className="text-sm text-secondary-light my-1">
                     {loggedInUser.email}
                   </p>
                 </div>
               </div>
 
-              <Link href="/dashboard" className="btn-primary w-full text-center mt-2">
+              <Link href="/dashboard" className="btn btn-primary w-full text-center mt-2">
                 Dashboard
               </Link>
 
-              <button onClick={handleLogout} className="btn-primary w-full mt-3">
+              <button onClick={handleLogout} className="btn btn-primary w-full mt-3">
                 {loggingOut ? "Logging out..." : "Logout"}
               </button>
             </>
