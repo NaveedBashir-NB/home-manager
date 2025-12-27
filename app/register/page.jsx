@@ -77,11 +77,11 @@ export default function RegisterPage() {
       <div className="absolute inset-0 bg-black/5 dark:bg-black/70 backdrop-blur-sm transition-colors duration-500"></div>
 
       {/* Form Container */}
-      <div className="relative z-20 w-full max-w-xs sm:max-w-sm md:max-w-md bg-[var(--bg-nav)] dark:bg-[var(--bg-nav)] border border-[var(--dropdown-border)] backdrop-blur-lg rounded-xl p-6 sm:p-8 shadow-xl transition-colors duration-500">
-        <h1 className="text-2xl sm:text-3xl font-[Poppins] text-center text-[var(--text-main)] mb-1 font-bold">
+      <div className="relative z-20 w-full mx-10 max-w-(--breakpoint-xs) bg-accent-light border-primary-dark border-2 backdrop-blur-lg rounded-xl p-6 sm:p-8 shadow-xl transition-colors duration-500">
+        <h1 className="text-xl sm:text-2xl text-center text-secondary mb-1">
           Create Account
         </h1>
-        <p className="text-sm sm:text-base font-[Inter] text-center text-[var(--text-muted)] mb-4">
+        <p className="text-sm sm:text-base text-center text-secondary-light mb-4">
           Sign up to start managing your household items.
         </p>
 
@@ -115,7 +115,7 @@ export default function RegisterPage() {
 
           <button
             type="submit"
-            className="btn-theme w-full py-2 text-sm sm:text-base"
+            className="btn btn-primary w-full"
             disabled={loading}
           >
             {loading ? "Please wait..." : "Register"}
@@ -123,21 +123,21 @@ export default function RegisterPage() {
         </form>
 
         <div className="flex items-center gap-3 my-4 sm:my-6">
-          <div className="flex-1 h-px bg-white/30"></div>
-          <span className="text-[var(--text-muted)] text-xs sm:text-sm">OR</span>
-          <div className="flex-1 h-px bg-white/30"></div>
+          <div className="flex-1 h-px bg-primary"></div>
+          <span className="text-secondary-light text-xs sm:text-sm">OR</span>
+          <div className="flex-1 h-px bg-primary"></div>
         </div>
 
         <button
           onClick={() => signIn("google")}
-          className="btn-theme w-full py-2 text-sm sm:text-base bg-white text-gray-700 hover:bg-gray-100 shadow transition"
+          className="btn btn-outline w-full"
         >
           Continue with Google
         </button>
 
-        <p className="text-center text-[var(--text-muted)] mt-4 sm:mt-6 text-xs sm:text-sm">
+        <p className="text-center text-secondary-light mt-4 sm:mt-6 text-xs sm:text-sm">
           Already have an account?{" "}
-          <Link href="/login" className="text-yellow-400 hover:underline">
+          <Link href="/login" className="text-primary hover:underline">
             Login
           </Link>
         </p>

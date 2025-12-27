@@ -20,7 +20,7 @@ export default function InputField({
   return (
     <div className="relative w-full">
       {/* Label + required asterisk */}
-      <label className="text-[var(--text-main)] font-semibold text-sm sm:text-base flex items-center gap-1">
+      <label className="text-secondary font-semibold text-xs sm:text-sm flex items-center gap-1">
         {label}
         {required && <span className="text-red-500">*</span>}
       </label>
@@ -33,10 +33,10 @@ export default function InputField({
         onChange={onChange}
         value={value}
         placeholder={placeholder}
-        className={`w-full mt-1 px-4 py-2 ${
+        className={`w-full mt-1 px-4 py-2 text-sm ${
           isPassword ? "pr-12" : "pr-4"
-        } bg-(--placeholder-bg) dark:bg-black/20 border-yellow-200 border-2
-        text-[var(--text-main)] placeholder-(--placeholder-text) rounded-lg
+        } bg-(--placeholder-bg) dark:bg-black/20 border-primary border-2
+        text-secondary placeholder-(--placeholder-text) rounded-lg
         focus:ring-2 focus:ring-yellow-400 focus:outline-none transition-colors`}
       />
 

@@ -21,11 +21,11 @@ export const IntroPage = () => {
       ></div>
 
       {/* Floating Circles */}
-      <div className="absolute w-60 h-60 bg-[var(--color-primary)] rounded-full opacity-15 animate-float1 top-12 left-12"></div>
-      <div className="absolute w-44 h-44 bg-[var(--color-primary-light)] rounded-full opacity-20 animate-float2 top-50 right-75"></div>
+      <div className="absolute w-60 h-60 bg-primary rounded-full opacity-15 animate-float1 top-12 left-12"></div>
+      <div className="absolute w-44 h-44 bg-primary-light rounded-full opacity-20 animate-float2 top-50 right-75"></div>
 
       {/* Content */}
-      <div className="relative z-10 text-center px-6 max-w-[768px] animate-fadeIn">
+      <div className="relative z-10 text-center px-6 max-w-(--breakpoint-md) animate-fadeIn">
         <h1 className="h1 mb-10 drop-shadow-lg text-4xl md:text-5xl lg:text-6xl">
           Organize Your Home Effortlessly
         </h1>

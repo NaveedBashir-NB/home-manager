@@ -17,7 +17,7 @@
 
   /* Accent – White */
   --color-accent: oklch(1 0 0);
-  --color-accent-light: oklch(0.98 0 0);
+  --color-accent-light: oklch(0.97 0 0);
   --color-accent-dark: oklch(0.92 0 0);
 
   /* Semantic colors */
@@ -44,14 +44,8 @@
   --bg-main: #ffffff;
   --button-bg: linear-gradient(to right, #facc15, #fcd34d);
   --button-text: #111111;
-  
-
-  --bg-nav: rgba(255, 255, 255, 0.8);
-  --text-main: #111111;
-  --text-muted: #555555;
-  --paragraph-color: #1f1f1f;
-  --placeholder-text: oklch(44.6% 0.03 256.802);
-  --placeholder-bg: #facc151f;
+  --placeholder-text: var(--color-gray-300);
+  --placeholder-bg: oklch(1 0.05 96);
   --intro-overlay: linear-gradient(
     to bottom,
     rgba(255, 255, 255, 0.6),
@@ -114,6 +108,7 @@
   --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
 
   /* Breakpoints (for reference in container queries) */
+  --breakpoint-xs: 500px;
   --breakpoint-sm: 640px;
   --breakpoint-md: 768px;
   --breakpoint-lg: 1024px;
@@ -141,12 +136,12 @@
   --color-primary-light: oklch(0.94 0.12 96); /* hover */
   --color-primary-dark: oklch(0.8 0.16 96); /* active */
 
-  --color-secondary: oklch(100% 0.0 270);
+  --color-secondary: oklch(100% 0 270);
   --color-secondary-light: oklch(0.96 0 0);
   --color-secondary-dark: oklch(0.8 0 0);
 
   --color-accent: oklch(0% 0 0);
-  --color-accent-light: oklch(1 0 0);
+  --color-accent-light: oklch(44.683% 0.00129 15.032);
   --color-accent-dark: oklch(0.88 0 0);
 
   /* Inverted neutral colors for dark mode */
@@ -165,24 +160,14 @@
   --bg-main: var(--color-gray-300);
   --button-bg: linear-gradient(to right, #f59e0b, #d97706);
   --button-text: #f5f5f5;
-  
-
-  --bg-nav: rgba(0, 0, 0, 0.55);
-  --text-main: #f5f5f5;
-  --text-muted: #d1d5db;
-  --paragraph-color: #e5e7eb;
+  --placeholder-text: var(--color-gray-600);
+  --placeholder-bg: oklch(44.6% 0.03 256.802);
   --intro-overlay: linear-gradient(
     to bottom,
     rgba(0, 0, 0, 0.6),
     rgba(0, 0, 0, 0.5),
     rgba(0, 0, 0, 0.7)
   );
-
-  --placeholder-text: oklch(44.6% 0.03 256.802);
-  --placeholder-bg: oklch(44.6% 0.03 256.802);
-  --dropdown-bg: #1a1a1a;
-  --dropdown-hover: #2a2a2a;
-  --dropdown-border: #333333;
 
   /* Enhanced shadows for dark mode */
   --shadow-sm: 0 1px 2px 0 oklch(0 0 0 / 0.5);
@@ -376,6 +361,7 @@
     border: 2px solid var(--color-primary-dark);
     color: var(--color-primary-dark);
     background-color: transparent;
+    border-radius: 9999px;
   }
 
   .btn-outline:hover {
