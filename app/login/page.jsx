@@ -68,7 +68,7 @@ export default function LoginPage() {
       <div className="absolute inset-0 bg-black/5 dark:bg-black/70 backdrop-blur-sm transition-colors duration-500"></div>
 
       {/* Form Container */}
-      <div className="relative z-20 w-full mx-10 max-w-(--breakpoint-xs) bg-accent-light border-primary-dark border-2 backdrop-blur-lg rounded-xl p-6 sm:p-8 shadow-xl transition-colors duration-500">
+      <div className="relative z-20 w-full mx-10 max-w-(--breakpoint-xs) bg-accent-light border-primary border-2 backdrop-blur-lg rounded-xl p-6 sm:p-8 shadow-xl transition-colors duration-500">
         <h1 className="text-xl sm:text-2xl text-center text-secondary mb-1">
           Welcome Back
         </h1>

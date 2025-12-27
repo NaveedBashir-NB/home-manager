@@ -380,32 +380,26 @@
 
   /* Card component */
   .card {
-    background-color: var(--color-white);
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-xl);
-    box-shadow: var(--shadow-md);
-    transition: all var(--transition-base);
+    @apply bg-accent-light border-primary-light border backdrop-blur-lg rounded-xl p-6 sm:p-8 shadow-xl transition-colors duration-500 text-center select-none;
   }
 
   .card:hover {
+    @apply transition-all duration-400;
+    transform: translateY(-1px);
+    scale: 1.01;
     box-shadow: var(--shadow-lg);
-    transform: translateY(-2px);
   }
 
   .card-header {
-    margin-bottom: var(--spacing-lg);
-    padding-bottom: var(--spacing-md);
-    border-bottom: 1px solid var(--color-gray-200);
+    @apply text-3xl mb-2;
   }
 
   .card-title {
-    font-size: var(--font-size-xl);
-    font-weight: var(--font-weight-semibold);
-    color: var(--color-gray-900);
+    @apply text-sm font-semibold text-secondary;
   }
 
   .card-body {
-    color: var(--color-gray-700);
+    @apply text-xs text-secondary-light mt-0.5;
   }
 
   /* Input component */

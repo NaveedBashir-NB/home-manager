@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import InputField from "../components/InputField";
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
@@ -146,28 +147,27 @@ export default function DashboardPage() {
     <div className="px-6 py-10 max-w-6xl mx-auto">
       {/* GREETING */}
       <div className="mb-10">
-        <h1 className="text-3xl sm:text-4xl font-bold text-[var(--text-main)]">
+        <h1 className="text-2xl sm:text-3xl font-bold text-secondary mb-1">
           {greeting}, {user.name.split(" ")[0]} 👋
         </h1>
-        <p className="text-[var(--text-muted)] mt-1">
+        <p className="text-secondary-light">
           Manage your daily household items easily.
         </p>
       </div>
 
       {/* SEARCH + FILTER */}
-      <div className="bg-[var(--card-bg)] border border-[var(--dropdown-border)] rounded-xl p-5 mb-10 shadow-lg backdrop-blur-xl">
+      <div className="bg-accent-light border-primary border-2 backdrop-blur-lg rounded-xl p-6 sm:p-8 shadow-xl transition-colors duration-500 mb-10">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <input
+          <InputField
             type="text"
             placeholder="Search items..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full px-4 py-2 rounded-xl bg-black/10 dark:bg-white/10 border border-[var(--dropdown-border)] text-[var(--text-main)] focus:outline-none focus:border-yellow-300 transition"
           />
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="w-full px-4 py-2 rounded-xl bg-black/10 dark:bg-white/10 border border-[var(--dropdown-border)] text-[var(--text-main)] focus:outline-none focus:border-yellow-300 transition"
+            className="w-full mt-1 px-4 py-1 text-sm bg-(--placeholder-bg) dark:bg-black/20 border-primary-light border-2 text-secondary placeholder-(--placeholder-text) rounded-lg focus:ring-2 focus:ring-yellow-400 focus:outline-none transition-colors"
           >
             <option value="all">All Categories</option>
             {categories.map((c) => (
@@ -180,7 +180,7 @@ export default function DashboardPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full px-4 py-2 rounded-xl bg-black/10 dark:bg-white/10 border border-[var(--dropdown-border)] text-[var(--text-main)] focus:outline-none focus:border-yellow-300 transition"
+            className="w-full mt-1 px-4 py-1 text-sm bg-(--placeholder-bg) dark:bg-black/20 border-primary-light border-2 text-secondary placeholder-(--placeholder-text) rounded-lg focus:ring-2 focus:ring-yellow-400 focus:outline-none transition-colors"
           >
             <option value="all">All Status</option>
             <option value="pending">Pending</option>
@@ -222,10 +222,10 @@ export default function DashboardPage() {
           <div
             key={box.label}
             onClick={box.action}
-            className="cursor-pointer bg-[var(--card-bg)] border border-[var(--dropdown-border)] rounded-xl p-6 text-center hover:scale-105 transition shadow-md select-none"
+            className="card border-2 cursor-pointer"
           >
-            <div className="text-3xl mb-2">{box.icon}</div>
-            <p className="text-sm font-semibold text-[var(--text-main)]">
+            <div className="card-header">{box.icon}</div>
+            <p className="card-title">
               {box.label}
             </p>
           </div>
@@ -233,27 +233,27 @@ export default function DashboardPage() {
       </div>
 
       {/* FILTERED ITEMS LIST */}
-      <h2 className="text-xl font-bold mb-3 text-[var(--text-main)]">
+      <h4 className="mb-3">
         Filtered Items ({filteredItems.length})
-      </h2>
+      </h4>
 
-      <div className="bg-[var(--card-bg)] p-5 rounded-xl border border-[var(--dropdown-border)] shadow mb-10">
+      <div className="bg-accent-light border-primary border-2 backdrop-blur-lg rounded-xl p-6 sm:p-8 shadow-xl transition-colors duration-500 mb-10">
         {filteredItems.length === 0 ? (
-          <p className="text-[var(--text-muted)] text-sm">No items found.</p>
+          <p className="text-secondary-light text-sm">No items found.</p>
         ) : (
           <ul className="space-y-3">
             {Array.isArray(filteredItems) &&
               filteredItems.slice(0, 10).map((item) => (
                 <li
                   key={item._id}
-                  className="flex flex-col sm:flex-row justify-between px-3 py-1 space-y-2 sm:p-3 rounded-lg bg-black/10 dark:bg-white/10"
+                  className="card text-start flex flex-col sm:flex-row justify-between px-3 py-1 space-y-2 sm:p-3"
                 >
                   <div className="flex flex-col">
-                    <span className="font-semibold text-[var(--text-main)]">
+                    <span className="card-title font-semibold text-secondary">
                       {item.name}
                     </span>
                     {item.description && (
-                      <span className="text-sm text-[var(--text-muted)] mt-0.5">
+                      <span className="card-body">
                         {item.description}
                       </span>
                     )}
@@ -281,7 +281,7 @@ export default function DashboardPage() {
                       <button
                         onClick={() => goEdit(item._id)}
                         title="Edit"
-                        className="text-[var(--text-main)] hover:text-yellow-400 transition"
+                        className="text-secondary hover:text-yellow-400 transition"
                       >
                         ✏️
                       </button>

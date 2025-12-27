@@ -35,7 +35,7 @@ export default function InputField({
         placeholder={placeholder}
         className={`w-full mt-1 px-4 py-2 text-sm ${
           isPassword ? "pr-12" : "pr-4"
-        } bg-(--placeholder-bg) dark:bg-black/20 border-primary border-2
+        } bg-(--placeholder-bg) dark:bg-black/20 border-primary-light border-2
         text-secondary placeholder-(--placeholder-text) rounded-lg
         focus:ring-2 focus:ring-yellow-400 focus:outline-none transition-colors`}
       />
