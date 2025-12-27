@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import InputField from "../components/InputField";
 import { useSession } from "next-auth/react";
+import toast from "react-hot-toast";
 
 export default function AddItemPage() {
   const router = useRouter();
@@ -39,7 +40,8 @@ export default function AddItemPage() {
   async function handleSubmit(e) {
     e.preventDefault();
 
-    if (!form.name || !form.category) return alert("Fill required fields");
+    if (!form.name || !form.category)
+      return toast.error("Fill required fields");
 
     if (!session?.user) {
       router.push("/login");
@@ -57,10 +59,12 @@ export default function AddItemPage() {
       body: JSON.stringify(payload),
     });
 
-    if (res.ok) router.push("/dashboard");
-    else {
+    if (res.ok) {
+      toast.success("Item added successfully");
+      router.push("/dashboard");
+    } else {
       const err = await res.json();
-      alert("Failed: " + (err.error || "unknown"));
+      toast.error("Failed: " + (err.error || "unknown"));
     }
   }
 
@@ -84,7 +88,7 @@ export default function AddItemPage() {
       {/* Floating Circles */}
       <div className="absolute w-60 h-60 bg-primary rounded-full opacity-15 animate-float1 top-12 left-12"></div>
       <div className="absolute w-44 h-44 bg-primary-light rounded-full opacity-20 animate-float2 top-50 right-75"></div>
-      
+
       {/* Floating animation keyframes */}
       <style jsx>{`
         @keyframes float1 {
@@ -137,7 +141,7 @@ export default function AddItemPage() {
 
           <div>
             <label className="text-secondary font-semibold text-xs sm:text-sm flex items-center gap-1">
-              Category
+              Category <span className="text-red-500">*</span>
             </label>
             <select
               name="category"
@@ -158,7 +162,7 @@ export default function AddItemPage() {
 
           <div>
             <label className="text-secondary font-semibold text-xs sm:text-sm flex items-center gap-1">
-              Status
+              Status <span className="text-red-500">*</span>
             </label>
             <select
               name="status"

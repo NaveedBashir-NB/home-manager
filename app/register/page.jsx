@@ -5,6 +5,7 @@ import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import InputField from "../components/InputField";
+import toast from "react-hot-toast";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -46,11 +47,11 @@ export default function RegisterPage() {
 
     if (res.status === 400) {
       const data = await res.json();
-      alert(data.message);
+      toast.error(data.message);
       return;
     }
 
-    alert("Account created successfully!");
+    toast.success("Account created successfully!");
 
     // Auto login after register
     await signIn("credentials", {

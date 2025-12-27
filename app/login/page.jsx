@@ -5,6 +5,7 @@ import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import InputField from "../components/InputField";
+import toast from "react-hot-toast";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -37,7 +38,7 @@ export default function LoginPage() {
     setLoading(false);
 
     if (result?.error) {
-      alert(result.error);
+      toast.error(result.error);
       return;
     }
 

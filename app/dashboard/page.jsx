@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import InputField from "../components/InputField";
+import toast from "react-hot-toast";
+import { confirmToast } from "../components/ui/confirmToast";
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
@@ -103,7 +105,7 @@ export default function DashboardPage() {
 
       if (!res.ok) {
         const err = await res.json();
-        alert("Failed: " + err.error);
+        toast.error("Failed: " + err.error);
         return;
       }
 
@@ -114,12 +116,12 @@ export default function DashboardPage() {
       );
     } catch (err) {
       console.error(err);
-      alert("Something went wrong");
+      toast.error("Something went wrong");
     }
   };
 
   async function handleDelete(itemId) {
-    if (!confirm("Are you sure you want to delete this item?")) return;
+    if (!confirmToast("Are you sure you want to delete this item?")) return;
 
     const res = await fetch("/api/items", {
       method: "DELETE",
@@ -132,10 +134,10 @@ export default function DashboardPage() {
 
     const data = await res.json();
     if (res.ok) {
-      alert("Item deleted successfully");
+      toast.success("Item deleted successfully");
       setItems(items.filter((item) => item._id !== itemId)); // reload items after delete
     } else {
-      alert("Delete failed: " + data.error);
+      toast.error("Delete failed: " + data.error);
     }
   }
 

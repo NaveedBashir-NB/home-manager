@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 import InputField from "../../components/InputField";
+import toast from "react-hot-toast";
 
 export default function EditItemPage() {
   const { data: session, status } = useSession();
@@ -38,7 +39,7 @@ export default function EditItemPage() {
     }
 
     if (!itemId) {
-      alert("No item selected to edit");
+      toast.error("No item selected to edit");
       router.push("/dashboard");
       return;
     }
@@ -65,7 +66,7 @@ export default function EditItemPage() {
       });
     } catch (err) {
       console.error(err);
-      alert(err.message);
+      toast.error(err.message);
       router.push("/dashboard");
     } finally {
       setLoading(false); // **important**: set loading to false no matter what
@@ -78,7 +79,8 @@ export default function EditItemPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!form.name || !form.category) return alert("Fill required fields");
+    if (!form.name || !form.category)
+      return toast.error("Fill required fields");
 
     try {
       const res = await fetch("/api/items", {
@@ -94,14 +96,14 @@ export default function EditItemPage() {
       const data = await res.json();
 
       if (res.ok) {
-        alert("Item updated successfully");
+        toast.success("Item updated successfully");
         router.push("/dashboard");
       } else {
-        alert("Failed: " + data.error);
+        toast.error("Failed: " + data.error);
       }
     } catch (err) {
       console.error(err);
-      alert("Something went wrong while updating the item.");
+      toast.error("Something went wrong while updating the item.");
     }
   };
 
@@ -155,7 +157,7 @@ export default function EditItemPage() {
           animation: float2 8s ease-in-out infinite;
         }
       `}</style>
-      
+
       {/* Form Container */}
       <div className="relative z-20 w-full mx-4 xs:mx-10 max-w-(--breakpoint-xs) bg-accent-light border-primary border-2 backdrop-blur-lg rounded-xl p-6 sm:p-8 shadow-xl transition-colors duration-500">
         <h1 className="text-xl sm:text-2xl text-center text-secondary mb-1">
@@ -182,7 +184,7 @@ export default function EditItemPage() {
 
           <div>
             <label className="text-secondary font-semibold text-xs sm:text-sm flex items-center gap-1">
-              Category
+              Category <span className="text-red-500">*</span>
             </label>
             <select
               name="category"
@@ -203,7 +205,7 @@ export default function EditItemPage() {
 
           <div>
             <label className="text-secondary font-semibold text-xs sm:text-sm flex items-center gap-1">
-              Status
+              Status <span className="text-red-500">*</span>
             </label>
             <select
               name="status"
