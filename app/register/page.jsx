@@ -67,14 +67,49 @@ export default function RegisterPage() {
       className="flex items-center justify-center relative w-screen overflow-x-hidden transition-colors duration-500"
       style={{ minHeight: "calc(100vh - 80px)" }}
     >
-      {/* Background */}
+      {/* Fullscreen Background */}
       <div
         className="absolute inset-0 bg-cover bg-center transition-transform duration-1000"
         style={{ backgroundImage: "url('/bg-image.png')" }}
       ></div>
 
       {/* Overlay */}
-      <div className="absolute inset-0 bg-black/5 dark:bg-black/70 backdrop-blur-sm transition-colors duration-500"></div>
+      <div
+        className="absolute inset-0 transition-colors duration-500"
+        style={{ background: "var(--intro-overlay)" }}
+      ></div>
+
+      {/* Floating Circles */}
+      <div className="absolute w-60 h-60 bg-primary rounded-full opacity-15 animate-float1 top-12 left-12"></div>
+      <div className="absolute w-44 h-44 bg-primary-light rounded-full opacity-20 animate-float2 top-50 right-75"></div>
+
+      {/* Floating animation keyframes */}
+      <style jsx>{`
+        @keyframes float1 {
+          0%,
+          100% {
+            transform: translateY(0px);
+          }
+          50% {
+            transform: translateY(200px);
+          }
+        }
+        @keyframes float2 {
+          0%,
+          100% {
+            transform: translateX(0px);
+          }
+          50% {
+            transform: translateX(-600px);
+          }
+        }
+        .animate-float1 {
+          animation: float1 6s ease-in-out infinite;
+        }
+        .animate-float2 {
+          animation: float2 8s ease-in-out infinite;
+        }
+      `}</style>
 
       {/* Form Container */}
       <div className="relative z-20 w-full mx-4 xs:mx-10 max-w-(--breakpoint-xs) bg-accent-light border-primary border-2 backdrop-blur-lg rounded-xl p-6 sm:p-8 shadow-xl transition-colors duration-500">
