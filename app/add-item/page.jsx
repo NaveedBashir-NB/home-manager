@@ -79,8 +79,10 @@ export default function AddItemPage() {
       <div className="absolute inset-0 bg-black/5 dark:bg-black/70 backdrop-blur-sm transition-colors duration-500"></div>
 
       {/* Form Container */}
-   <div className="relative z-20 w-full mx-4 xs:mx-10 max-w-(--breakpoint-xs) bg-accent-light border-primary border-2 backdrop-blur-lg rounded-xl p-6 sm:p-8 shadow-xl transition-colors duration-500">
- <h1 className="text-xl sm:text-2xl text-center text-secondary mb-1">Add New Item</h1>
+      <div className="relative z-20 w-full mx-4 xs:mx-10 max-w-(--breakpoint-xs) bg-accent-light border-primary border-2 backdrop-blur-lg rounded-xl p-6 sm:p-8 shadow-xl transition-colors duration-500">
+        <h1 className="text-xl sm:text-2xl text-center text-secondary mb-1">
+          Add New Item
+        </h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <InputField
             label="Item Name"
@@ -99,7 +101,9 @@ export default function AddItemPage() {
           />
 
           <div>
-            <label className="text-secondary font-semibold text-xs sm:text-sm flex items-center gap-1">Category</label>
+            <label className="text-secondary font-semibold text-xs sm:text-sm flex items-center gap-1">
+              Category
+            </label>
             <select
               name="category"
               value={form.category}
@@ -118,7 +122,9 @@ export default function AddItemPage() {
           </div>
 
           <div>
-            <label className="text-secondary font-semibold text-xs sm:text-sm flex items-center gap-1">Status</label>
+            <label className="text-secondary font-semibold text-xs sm:text-sm flex items-center gap-1">
+              Status
+            </label>
             <select
               name="status"
               value={form.status}

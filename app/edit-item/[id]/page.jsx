@@ -109,17 +109,23 @@ export default function EditItemPage() {
 
   return (
     <div
-      className="flex items-center justify-center relative w-screen overflow-x-hidden"
+      className="flex items-center justify-center relative w-screen overflow-x-hidden transition-colors duration-500"
       style={{ minHeight: "calc(100vh - 80px)" }}
     >
+      {/* Background */}
       <div
-        className="absolute inset-0 bg-cover bg-center"
+        className="absolute inset-0 bg-cover bg-center transition-transform duration-1000"
         style={{ backgroundImage: "url('/bg-image.png')" }}
       ></div>
-      <div className="absolute inset-0 bg-black/5 backdrop-blur-sm"></div>
 
-      <div className="relative z-20 w-full max-w-md bg-[var(--bg-nav)] border-yellow-200 border-2 backdrop-blur-lg rounded-xl p-8 shadow-xl">
-        <h1 className="text-3xl font-bold text-center mb-1">Edit Item</h1>
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-black/5 dark:bg-black/70 backdrop-blur-sm transition-colors duration-500"></div>
+
+      {/* Form Container */}
+      <div className="relative z-20 w-full mx-4 xs:mx-10 max-w-(--breakpoint-xs) bg-accent-light border-primary border-2 backdrop-blur-lg rounded-xl p-6 sm:p-8 shadow-xl transition-colors duration-500">
+        <h1 className="text-xl sm:text-2xl text-center text-secondary mb-1">
+          Edit Item
+        </h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <InputField
             label="Item Name"
@@ -140,12 +146,12 @@ export default function EditItemPage() {
           />
 
           <div>
-            <label className="text-sm font-medium">Category</label>
+            <label className="text-secondary font-semibold text-xs sm:text-sm flex items-center gap-1">Category</label>
             <select
               name="category"
               value={form.category}
               onChange={handleChange}
-              className="w-full mt-1 p-3 rounded-lg border border-yellow-200"
+              className="w-full mt-1 px-4 py-2 text-sm bg-(--placeholder-bg) dark:bg-black/20 border-primary-light border-2 text-secondary placeholder-(--placeholder-text) rounded-lg focus:ring-2 focus:ring-yellow-400 focus:outline-none transition-colors"
             >
               <option value="">Select category</option>
               {categories.map((cat, i) => (
@@ -159,12 +165,12 @@ export default function EditItemPage() {
           </div>
 
           <div>
-            <label className="text-sm font-medium">Status</label>
+            <label className="text-secondary font-semibold text-xs sm:text-sm flex items-center gap-1">Status</label>
             <select
               name="status"
               value={form.status}
               onChange={handleChange}
-              className="w-full mt-1 p-3 rounded-lg border border-yellow-200"
+              className="w-full mt-1 px-4 py-2 text-sm bg-(--placeholder-bg) dark:bg-black/20 border-primary-light border-2 text-secondary placeholder-(--placeholder-text) rounded-lg focus:ring-2 focus:ring-yellow-400 focus:outline-none transition-colors"
             >
               <option value="pending">Pending</option>
               <option value="completed">Completed</option>
@@ -172,15 +178,15 @@ export default function EditItemPage() {
             </select>
           </div>
 
-          <div className="flex gap-3 mt-4">
+          <div className="flex gap-3 mt-10">
             <button
               type="button"
               onClick={() => router.push("/dashboard")}
-              className="w-full py-2 border border-yellow-300 rounded-full"
+              className="btn btn-outline w-full"
             >
               Cancel
             </button>
-            <button type="submit" className="btn-theme w-full py-2">
+            <button type="submit" className="btn btn-primary w-full">
               Update Item
             </button>
           </div>
