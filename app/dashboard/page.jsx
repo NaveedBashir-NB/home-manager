@@ -120,25 +120,30 @@ export default function DashboardPage() {
     }
   };
 
-  async function handleDelete(itemId) {
-    if (!confirmToast("Are you sure you want to delete this item?")) return;
+  function handleDelete(itemId) {
+    confirmToast("Are you sure you want to delete this item?", async () => {
+      try {
+        const res = await fetch("/api/items", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: itemId,
+            userId: session.user.email,
+          }),
+        });
 
-    const res = await fetch("/api/items", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id: itemId,
-        userId: session.user.email, // same as Add Item logic
-      }),
+        const data = await res.json();
+
+        if (res.ok) {
+          toast.success("Item deleted successfully");
+          setItems(items.filter((item) => item._id !== itemId));
+        } else {
+          toast.error("Delete failed: " + data.error);
+        }
+      } catch (err) {
+        toast.error("Delete failed: " + err.message);
+      }
     });
-
-    const data = await res.json();
-    if (res.ok) {
-      toast.success("Item deleted successfully");
-      setItems(items.filter((item) => item._id !== itemId)); // reload items after delete
-    } else {
-      toast.error("Delete failed: " + data.error);
-    }
   }
 
   const goEdit = (id) => router.push(`/edit-item/${id}`);
@@ -227,17 +232,13 @@ export default function DashboardPage() {
             className="card border-2 cursor-pointer"
           >
             <div className="card-header">{box.icon}</div>
-            <p className="card-title">
-              {box.label}
-            </p>
+            <p className="card-title">{box.label}</p>
           </div>
         ))}
       </div>
 
       {/* FILTERED ITEMS LIST */}
-      <h4 className="mb-3">
-        Filtered Items ({filteredItems.length})
-      </h4>
+      <h4 className="mb-3">Filtered Items ({filteredItems.length})</h4>
 
       <div className="bg-accent-light border-primary border-2 backdrop-blur-lg rounded-xl p-6 sm:p-8 shadow-xl transition-colors duration-500 mb-10">
         {filteredItems.length === 0 ? (
@@ -255,9 +256,7 @@ export default function DashboardPage() {
                       {item.name}
                     </span>
                     {item.description && (
-                      <span className="card-body">
-                        {item.description}
-                      </span>
+                      <span className="card-body">{item.description}</span>
                     )}
                   </div>
 

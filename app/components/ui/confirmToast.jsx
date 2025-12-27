@@ -5,7 +5,7 @@ export function confirmToast(message, onConfirm) {
     (t) => (
       <div
         className={`max-w-(--breakpoint-sm) w-full rounded-xl p-4 bg-accent-light border-2 border-primary shadow-lg transition 
-      ${t.visible ? "animate-fadeIn" : "animate-fadeOut"}`}
+        ${t.visible ? "animate-fadeIn" : "animate-fadeOut"}`}
       >
         <p className="text-secondary mb-4">{message}</p>
 
@@ -21,7 +21,10 @@ export function confirmToast(message, onConfirm) {
             className="btn btn-primary"
             onClick={() => {
               toast.dismiss(t.id);
-              onConfirm();
+              // Only call onConfirm if it's a function
+              if (typeof onConfirm === "function") {
+                onConfirm();
+              }
             }}
           >
             Confirm
@@ -29,6 +32,6 @@ export function confirmToast(message, onConfirm) {
         </div>
       </div>
     ),
-    { duration: Infinity }
+    { duration: Infinity, position: "top-center" } // Keep it top-center
   );
 }
