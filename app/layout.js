@@ -7,6 +7,15 @@ import { Toaster } from "react-hot-toast";
 export const metadata = {
   title: "Home Manager",
   description: "Grocery & Household Management App",
+  manifest: "/manifest.json", // This links the manifest
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Home Manager",
+  },
+  formatDetection: {
+    telephone: false,
+  },
 };
 
 export default function RootLayout({ children }) {
@@ -17,6 +26,8 @@ export default function RootLayout({ children }) {
           href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Playfair+Display:wght@600;700&display=swap"
           rel="stylesheet"
         />
+        <meta name="theme-color" content="#000000" />
+        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
       </head>
       <body>
         <ThemeProvider
@@ -34,7 +45,7 @@ export default function RootLayout({ children }) {
                 position="bottom-right"
                 reverseOrder={false}
                 toastOptions={{
-                  duration: 5000,
+                  duration: 3000,
                   style: {
                     background: "var(--color-accent-light)",
                     color: "var(--color-secondary)",
