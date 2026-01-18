@@ -159,7 +159,7 @@ export default function EditItemPage() {
       `}</style>
 
       {/* Form Container */}
-      <div className="relative z-20 w-full mx-4 xs:mx-10 max-w-(--breakpoint-xs) bg-accent-light border-primary border-2 backdrop-blur-lg rounded-xl p-6 sm:p-8 shadow-xl transition-colors duration-500">
+      <div className="relative z-20 w-full mx-4 xs:mx-5 max-w-(--breakpoint-xs) bg-accent-light border-primary border-2 backdrop-blur-lg rounded-xl p-6 sm:p-8 shadow-xl transition-colors duration-500">
         <h1 className="text-xl sm:text-2xl text-center text-secondary mb-1">
           Edit Item
         </h1>

@@ -246,7 +246,7 @@ export default function DashboardPage() {
         ) : (
           <ul className="space-y-3">
             {Array.isArray(filteredItems) &&
-              filteredItems.slice(0, 10).map((item) => (
+              filteredItems.slice(0, 100).map((item) => (
                 <li
                   key={item._id}
                   className="card text-start flex flex-col sm:flex-row justify-between px-3 py-1 space-y-2 sm:p-3"
