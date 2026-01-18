@@ -6,6 +6,7 @@ import { useTheme } from "next-themes";
 import { useSession, signOut } from "next-auth/react";
 import { Moon, Sun, Menu, X } from "lucide-react";
 import toast from "react-hot-toast";
+import Image from "next/image";
 
 export default function Navbar() {
   const profileRef = useRef(null);
@@ -106,9 +107,19 @@ export default function Navbar() {
         {/* Logo */}
         <Link
           href="/"
-          className="text-2xl font-bold tracking-wide text-secondary no-underline transition-all duration-500"
+          className="flex items-center gap-2 text-2xl font-bold tracking-wide text-secondary no-underline transition-all duration-500"
         >
-          Home<span className="text-primary">Manager</span>
+          <Image
+            src="/logo.png"
+            alt="Home Manager Logo"
+            width={40}
+            height={40}
+            priority
+            className="object-contain"
+          />
+          <span>
+            Home<span className="text-primary">Manager</span>
+          </span>
         </Link>
 
         <div className="flex gap-5">
