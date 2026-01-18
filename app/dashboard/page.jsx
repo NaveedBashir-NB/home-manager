@@ -162,7 +162,7 @@ export default function DashboardPage() {
     <div className="px-6 py-10 max-w-6xl mx-auto">
       {/* GREETING */}
       <div className="mb-10">
-        <h1 className="text-2xl sm:text-3xl font-bold text-secondary mb-1">
+        <h1 className="text-xl sm:text-xl font-bold text-secondary mb-1">
           {greeting}, {user.name.split(" ")[0]} 👋
         </h1>
         <p className="text-secondary-light">

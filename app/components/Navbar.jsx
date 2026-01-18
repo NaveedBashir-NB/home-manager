@@ -107,13 +107,13 @@ export default function Navbar() {
         {/* Logo */}
         <Link
           href="/"
-          className="flex items-center gap-2 text-2xl font-bold tracking-wide text-secondary no-underline transition-all duration-500"
+          className="flex items-center text-xl font-bold tracking-wide text-secondary no-underline transition-all duration-500"
         >
           <Image
-            src="/logo.png"
+            src="/logo-icon-without-text.png"
             alt="Home Manager Logo"
-            width={40}
-            height={40}
+            width={50}
+            height={50}
             priority
             className="object-contain"
           />
