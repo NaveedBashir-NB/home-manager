@@ -228,7 +228,7 @@ export default function EditItemPage() {
               Cancel
             </button>
             <button type="submit" className="btn btn-primary w-full">
-              Update Item
+              Update
             </button>
           </div>
         </form>
