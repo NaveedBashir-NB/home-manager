@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 import { confirmToast } from "../components/ui/confirmToast";
 
 export default function DashboardPage() {
+  const [isLoading, setIsLoading] = useState(true);
   const { data: session, status } = useSession();
   const router = useRouter();
 
@@ -50,15 +51,22 @@ export default function DashboardPage() {
     setUser(session.user);
     const email = encodeURIComponent(session.user.email);
 
+    // Start loading
+    setIsLoading(true);
+
     fetch(`/api/items?email=${email}`)
       .then((res) => res.json())
       .then((data) => {
         setItems(data || []);
         setFilteredItems(data || []);
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error(err);
         setItems([]);
         setFilteredItems([]);
+      })
+      .finally(() => {
+        setIsLoading(false); // Stop loading
       });
   }, [session, status]);
 
@@ -238,77 +246,86 @@ export default function DashboardPage() {
       </div>
 
       {/* FILTERED ITEMS LIST */}
-      <h4 className="mb-3">Filtered Items ({filteredItems.length})</h4>
+      <h4 className="mb-3">
+        {isLoading
+          ? "Fetching items..."
+          : `Filtered Items (${filteredItems.length})`}
+      </h4>
 
-      <div className="bg-accent-light border-primary border-2 backdrop-blur-lg rounded-xl p-6 sm:p-8 shadow-xl transition-colors duration-500 mb-10">
-        {filteredItems.length === 0 ? (
-          <p className="text-secondary-light text-sm">No items found.</p>
-        ) : (
-          <ul className="space-y-3">
-            {Array.isArray(filteredItems) &&
-              filteredItems.slice(0, 100).map((item) => (
-                <li
-                  key={item._id}
-                  className="card text-start flex flex-col sm:flex-row justify-between px-3 py-1 space-y-2 sm:p-3"
-                >
-                  <div className="flex flex-col">
-                    <span className="card-title font-semibold text-secondary">
-                      {item.name}
-                    </span>
-                    {item.description && (
-                      <span className="card-body">{item.description}</span>
-                    )}
-                  </div>
+      {isLoading ? (
+        <div className="flex items-center gap-3">
+          <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full"></div>
+          <p className="text-secondary-light text-sm font-medium">
+            Please wait, we are getting your data ready...
+          </p>
+        </div>
+      ) : filteredItems.length === 0 ? (
+        <p className="text-secondary-light text-sm">No items found.</p>
+      ) : (
+        <ul className="space-y-3">
+          {Array.isArray(filteredItems) &&
+            filteredItems.slice(0, 100).map((item) => (
+              <li
+                key={item._id}
+                className="card text-start flex flex-col sm:flex-row justify-between px-3 py-1 space-y-2 sm:p-3"
+              >
+                <div className="flex flex-col">
+                  <span className="card-title font-semibold text-secondary">
+                    {item.name}
+                  </span>
+                  {item.description && (
+                    <span className="card-body">{item.description}</span>
+                  )}
+                </div>
 
-                  <div className="flex justify-between py-1 gap-1 sm:w-1/2 sm:max-w-75">
-                    <span
-                      className={`text-xs sm:text-sm sm:font-bold font-semibold px-3 sm:px-5 py-1 sm:py-2 rounded-sm my-auto ${
-                        item.status === "completed"
-                          ? "bg-green-500/30 text-green-800"
-                          : item.status === "future-needs"
-                          ? "bg-blue-500/30 text-blue-800"
-                          : "bg-yellow-500/30 text-yellow-800"
-                      }`}
+                <div className="flex justify-between py-1 gap-1 sm:w-1/2 sm:max-w-75">
+                  <span
+                    className={`text-xs sm:text-sm sm:font-bold font-semibold px-3 sm:px-5 py-1 sm:py-2 rounded-sm my-auto ${
+                      item.status === "completed"
+                        ? "bg-green-500/30 text-green-800"
+                        : item.status === "future-needs"
+                        ? "bg-blue-500/30 text-blue-800"
+                        : "bg-yellow-500/30 text-yellow-800"
+                    }`}
+                  >
+                    {item.status === "future-needs"
+                      ? "Future Needs"
+                      : item.status === "pending"
+                      ? "Pending"
+                      : "Completed"}
+                  </span>
+
+                  <div className="flex w-2/5 max-w-30 justify-between">
+                    {" "}
+                    <button
+                      onClick={() => goEdit(item._id)}
+                      title="Edit"
+                      className="text-secondary hover:text-yellow-400 transition"
                     >
-                      {item.status === "future-needs"
-                        ? "Future Needs"
-                        : item.status === "pending"
-                        ? "Pending"
-                        : "Completed"}
-                    </span>
-
-                    <div className="flex w-2/5 max-w-30 justify-between">
-                      {" "}
+                      ✏️
+                    </button>
+                    {item.status !== "completed" && (
                       <button
-                        onClick={() => goEdit(item._id)}
-                        title="Edit"
-                        className="text-secondary hover:text-yellow-400 transition"
+                        onClick={() => markCompleted(item)}
+                        title="Mark completed"
+                        className="text-green-400 hover:text-green-300 transition"
                       >
-                        ✏️
+                        ✔
                       </button>
-                      {item.status !== "completed" && (
-                        <button
-                          onClick={() => markCompleted(item)}
-                          title="Mark completed"
-                          className="text-green-400 hover:text-green-300 transition"
-                        >
-                          ✔
-                        </button>
-                      )}
-                      <button
-                        onClick={() => handleDelete(item._id)}
-                        title="Delete"
-                        className="text-red-400 hover:text-red-300 transition"
-                      >
-                        🗑️
-                      </button>
-                    </div>
+                    )}
+                    <button
+                      onClick={() => handleDelete(item._id)}
+                      title="Delete"
+                      className="text-red-400 hover:text-red-300 transition"
+                    >
+                      🗑️
+                    </button>
                   </div>
-                </li>
-              ))}
-          </ul>
-        )}
-      </div>
+                </div>
+              </li>
+            ))}
+        </ul>
+      )}
     </div>
   );
 }
