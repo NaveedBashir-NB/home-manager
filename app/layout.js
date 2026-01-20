@@ -8,10 +8,6 @@ export const metadata = {
   title: "Home Manager",
   description: "Grocery & Household Management App",
   manifest: "/manifest.json", // This links the manifest
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#dab500" },
-    { media: "(prefers-color-scheme: dark)", color: "#020617" },
-  ],
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -20,6 +16,14 @@ export const metadata = {
   formatDetection: {
     telephone: false,
   },
+};
+
+
+export const viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#dab500" },
+    { media: "(prefers-color-scheme: dark)", color: "#020617" },
+  ],
 };
 
 export default function RootLayout({ children }) {
