@@ -35,7 +35,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const h = new Date().getHours();
     setGreeting(
-      h < 12 ? "Good Morning" : h < 17 ? "Good Afternoon" : "Good Evening"
+      h < 12 ? "Good Morning" : h < 17 ? "Good Afternoon" : "Good Evening",
     );
   }, []);
 
@@ -76,7 +76,7 @@ export default function DashboardPage() {
 
     if (search.trim())
       data = data.filter((i) =>
-        i.name.toLowerCase().includes(search.toLowerCase())
+        i.name.toLowerCase().includes(search.toLowerCase()),
       );
     if (categoryFilter !== "all")
       data = data.filter((i) => i.category === categoryFilter);
@@ -120,8 +120,45 @@ export default function DashboardPage() {
       const updatedItem = await res.json();
 
       setItems((prev) =>
-        prev.map((i) => (i._id === updatedItem._id ? updatedItem : i))
+        prev.map((i) => (i._id === updatedItem._id ? updatedItem : i)),
       );
+      toast.success("Item marked as completed");
+    } catch (err) {
+      console.error(err);
+      toast.error("Something went wrong");
+    }
+  };
+
+  const markPending = async (item) => {
+    try {
+      const payload = {
+        id: item._id,
+        userId: session.user.email,
+        name: item.name,
+        description: item.description,
+        category: item.category,
+        status: "pending",
+      };
+
+      const res = await fetch("/api/items", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        toast.error("Failed: " + err.error);
+        return;
+      }
+
+      const updatedItem = await res.json();
+
+      setItems((prev) =>
+        prev.map((i) => (i._id === updatedItem._id ? updatedItem : i)),
+      );
+
+      toast.success("Item moved to pending");
     } catch (err) {
       console.error(err);
       toast.error("Something went wrong");
@@ -284,15 +321,15 @@ export default function DashboardPage() {
                       item.status === "completed"
                         ? "bg-green-500/30 text-green-800"
                         : item.status === "future-needs"
-                        ? "bg-blue-500/30 text-blue-800"
-                        : "bg-yellow-500/30 text-yellow-800"
+                          ? "bg-blue-500/30 text-blue-800"
+                          : "bg-yellow-500/30 text-yellow-800"
                     }`}
                   >
                     {item.status === "future-needs"
                       ? "Future Needs"
                       : item.status === "pending"
-                      ? "Pending"
-                      : "Completed"}
+                        ? "Pending"
+                        : "Completed"}
                   </span>
 
                   <div className="flex w-2/5 max-w-30 justify-between">
@@ -304,7 +341,15 @@ export default function DashboardPage() {
                     >
                       ✏️
                     </button>
-                    {item.status !== "completed" && (
+                    {item.status === "completed" ? (
+                      <button
+                        onClick={() => markPending(item)}
+                        title="Mark pending"
+                        className="text-yellow-400 hover:text-yellow-300 transition"
+                      >
+                        ↩
+                      </button>
+                    ) : (
                       <button
                         onClick={() => markCompleted(item)}
                         title="Mark completed"
