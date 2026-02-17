@@ -2,7 +2,7 @@ import "./globals.css";
 import Navbar from "./components/Navbar";
 import Providers from "./providers";
 import { ThemeProvider } from "next-themes";
-import { Toaster } from "react-hot-toast";
+import ToastProvider from "./components/ui/ToastProvider";
 
 export const metadata = {
   title: "Home Manager",
@@ -63,24 +63,10 @@ export default function RootLayout({ children }) {
           enableSystem={false}
         >
           <Providers>
+            <ToastProvider/>
             <Navbar />
             <main className="pt-20">
               {children}
-
-              {/* Global toaster */}
-              <Toaster
-                position="bottom-right"
-                reverseOrder={false}
-                toastOptions={{
-                  duration: 3000,
-                  style: {
-                    background: "var(--color-accent-light)",
-                    color: "var(--color-secondary)",
-                    border: "1px solid var(--color-primary)",
-                    fontSize: "14px",
-                  },
-                }}
-              />
             </main>
           </Providers>
         </ThemeProvider>

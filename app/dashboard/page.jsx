@@ -345,7 +345,7 @@ export default function DashboardPage() {
                       <button
                         onClick={() => markPending(item)}
                         title="Mark pending"
-                        className="text-yellow-400 hover:text-yellow-300 transition"
+                        className="text-yellow-400 hover:text-yellow-300 transition text-xl sm:text-lg"
                       >
                         ↩
                       </button>
