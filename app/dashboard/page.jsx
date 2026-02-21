@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import InputField from "../components/InputField";
 import toast from "react-hot-toast";
 import { confirmToast } from "../components/ui/confirmToast";
+import { CheckCheck, Pencil, Trash2, Undo } from "lucide-react";
 
 export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
@@ -301,74 +302,77 @@ export default function DashboardPage() {
       ) : (
         <ul className="space-y-3">
           {Array.isArray(filteredItems) &&
-            filteredItems.slice(0, 100).map((item) => (
-              <li
-                key={item._id}
-                className="card text-start flex flex-col sm:flex-row justify-between px-3 py-1 space-y-2 sm:p-3"
-              >
-                <div className="flex flex-col">
-                  <span className="card-title font-semibold text-secondary">
-                    {item.name}
-                  </span>
-                  {item.description && (
-                    <span className="card-body">{item.description}</span>
-                  )}
-                </div>
-
-                <div className="flex justify-between py-1 gap-1 sm:w-1/2 sm:max-w-75">
-                  <span
-                    className={`text-xs sm:text-sm sm:font-bold font-semibold px-3 sm:px-5 py-1 sm:py-2 rounded-sm my-auto ${
-                      item.status === "completed"
-                        ? "bg-green-500/30 text-green-800"
-                        : item.status === "future-needs"
-                          ? "bg-blue-500/30 text-blue-800"
-                          : "bg-yellow-500/30 text-yellow-800"
-                    }`}
-                  >
-                    {item.status === "future-needs"
-                      ? "Future Needs"
-                      : item.status === "pending"
-                        ? "Pending"
-                        : "Completed"}
-                  </span>
-
-                  <div className="flex w-2/5 max-w-30 justify-between">
-                    {" "}
-                    <button
-                      onClick={() => goEdit(item._id)}
-                      title="Edit"
-                      className="text-secondary hover:text-yellow-400 transition"
-                    >
-                      ✏️
-                    </button>
-                    {item.status === "completed" ? (
-                      <button
-                        onClick={() => markPending(item)}
-                        title="Mark pending"
-                        className="text-yellow-400 hover:text-yellow-300 transition text-xl sm:text-lg"
-                      >
-                        ↩
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => markCompleted(item)}
-                        title="Mark completed"
-                        className="text-green-400 hover:text-green-300 transition"
-                      >
-                        ✔
-                      </button>
+            [...filteredItems] // 1. Create a copy to avoid mutating state
+              .sort((a, b) => a.name.localeCompare(b.name)) // 2. Sort ascending by name
+              .slice(0, 500) // 3. Limit the results
+              .map((item) => (
+                <li
+                  key={item._id}
+                  className="card text-start flex flex-col sm:flex-row justify-between px-3 py-1 space-y-2 sm:p-3"
+                >
+                  <div className="flex flex-col">
+                    <span className="card-title font-semibold text-secondary">
+                      {item.name}
+                    </span>
+                    {item.description && (
+                      <span className="card-body">{item.description}</span>
                     )}
-                    <button
-                      onClick={() => handleDelete(item._id)}
-                      title="Delete"
-                      className="text-red-400 hover:text-red-300 transition"
-                    >
-                      🗑️
-                    </button>
                   </div>
-                </div>
-              </li>
-            ))}
+
+                  <div className="flex justify-between py-1 gap-1 sm:w-1/2 sm:max-w-75">
+                    <span
+                      className={`text-xs sm:text-sm sm:font-bold font-semibold px-3 sm:px-5 py-1 sm:py-2 rounded-sm my-auto ${
+                        item.status === "completed"
+                          ? "bg-green-500/30 text-green-800"
+                          : item.status === "future-needs"
+                            ? "bg-blue-500/30 text-blue-800"
+                            : "bg-yellow-500/30 text-yellow-800"
+                      }`}
+                    >
+                      {item.status === "future-needs"
+                        ? "Future Needs"
+                        : item.status === "pending"
+                          ? "Pending"
+                          : "Completed"}
+                    </span>
+
+                    <div className="flex w-2/5 max-w-30 justify-between">
+                      {" "}
+                      <button
+                        onClick={() => goEdit(item._id)}
+                        title="Edit"
+                        className="text-yellow-500 hover:text-yellow-800 transition"
+                      >
+                        <Pencil size={22} />
+                      </button>
+                      {item.status === "completed" ? (
+                        <button
+                          onClick={() => markPending(item)}
+                          title="Mark pending"
+                          className="text-blue-500 hover:text-blue-800 transition"
+                        >
+                          <Undo size={22} />
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => markCompleted(item)}
+                          title="Mark completed"
+                          className="text-green-500 hover:text-green-800 transition"
+                        >
+                          <CheckCheck size={22} />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleDelete(item._id)}
+                        title="Delete"
+                        className="text-red-500 hover:text-red-800 transition"
+                      >
+                        <Trash2 size={22} />
+                      </button>
+                    </div>
+                  </div>
+                </li>
+              ))}
         </ul>
       )}
     </div>

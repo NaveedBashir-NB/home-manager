@@ -32,6 +32,6 @@ export function confirmToast(message, onConfirm) {
         </div>
       </div>
     ),
-    { duration: Infinity, position: "top-center" } // Keep it top-center
+    { duration: 3000, position: "top-center" } // Keep it top-center
   );
 }
