@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import InputField from "../components/InputField";
 import toast from "react-hot-toast";
 import { confirmToast } from "../components/ui/confirmToast";
-import { CheckCheck, Pencil, Trash2, Undo } from "lucide-react";
+import { CheckCheck, FileDown, Pencil, Trash2, Undo } from "lucide-react";
+import { generateItemsPDF } from "../utils/generatePDF";
 
 export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
@@ -196,6 +197,16 @@ export default function DashboardPage() {
 
   if (!user) return null;
 
+// PDF Export Function
+  const handleExportPDF = () => {
+  if (filteredItems.length === 0) {
+    toast.error("No items to export.");
+    return;
+  }
+  generateItemsPDF(filteredItems, categoryFilter, statusFilter, user);
+  toast.success("PDF downloaded!");
+};
+
   return (
     <div className="px-6 py-10 max-w-6xl mx-auto">
       {/* GREETING */}
@@ -207,6 +218,26 @@ export default function DashboardPage() {
           Manage your daily household items easily.
         </p>
       </div>
+
+      
+      <div className="flex items-center justify-between mb-3">
+        <h4>
+          {isLoading
+            ? "Fetching items..."
+            : `Filtered Items (${filteredItems.length})`}
+        </h4>
+      
+        {!isLoading && filteredItems.length > 0 && (
+          <button
+            onClick={handleExportPDF}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-yellow-400 hover:bg-yellow-500 text-black rounded-lg transition"
+          >
+            <FileDown size={16} />
+            Export PDF
+          </button>
+        )}
+      </div>
+      
 
       {/* SEARCH + FILTER */}
       <div className="bg-accent-light border-primary border-2 backdrop-blur-lg rounded-xl p-6 sm:p-8 shadow-xl transition-colors duration-500 mb-10">
