@@ -198,12 +198,12 @@ export default function DashboardPage() {
   if (!user) return null;
 
 // PDF Export Function
-  const handleExportPDF = () => {
+ const handleExportPDF = async () => {
   if (filteredItems.length === 0) {
     toast.error("No items to export.");
     return;
   }
-  generateItemsPDF(filteredItems, categoryFilter, statusFilter, user);
+  await generateItemsPDF(filteredItems, categoryFilter, statusFilter, user);
   toast.success("PDF downloaded!");
 };
 
